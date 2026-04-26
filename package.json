@@ -1,5 +1,5 @@
 {
-  "name": "mcp-cli",
+  "name": "@itzfaisal/mcp-cli",
   "version": "0.1.0",
   "description": "Unified CLI to manage MCP servers across Claude Code, OpenCode, and more",
   "type": "module",
