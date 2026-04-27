@@ -338,8 +338,8 @@ describe("move command", () => {
     });
   });
 
-  describe("--tool both", () => {
-    it("moves to both tools and removes from source", () => {
+  describe("--tool all", () => {
+    it("moves to all tools and removes from source", () => {
       fs.writeFileSync(
         claudeProjectFile,
         JSON.stringify({
@@ -350,7 +350,7 @@ describe("move command", () => {
       );
 
       runCli(
-        "move my-server --from-tool claude --from-scope project --tool both --scope user"
+        "move my-server --from-tool claude --from-scope project --tool all --scope user"
       );
 
       const claudeData = JSON.parse(fs.readFileSync(claudeFile, "utf-8"));
@@ -365,7 +365,7 @@ describe("move command", () => {
       expect(claudeProjectData.mcpServers["my-server"]).toBeUndefined();
     });
 
-    it("moves to both tools with --force overwriting existing", () => {
+    it("moves to all tools with --force overwriting existing", () => {
       fs.writeFileSync(
         claudeProjectFile,
         JSON.stringify({
@@ -388,7 +388,7 @@ describe("move command", () => {
       );
 
       runCli(
-        "move my-server --from-tool claude --from-scope project --tool both --scope user --force"
+        "move my-server --from-tool claude --from-scope project --tool all --scope user --force"
       );
 
       const claudeData = JSON.parse(fs.readFileSync(claudeFile, "utf-8"));

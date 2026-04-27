@@ -7,7 +7,7 @@ import type { Tool, Scope } from "../types.js";
 export const listCommand = new Command("list")
   .alias("ls")
   .description("List all configured MCP servers across tools")
-  .option("-t, --tool <tool>", "Filter by tool (claude | opencode)")
+  .option("-t, --tool <tool>", "Filter by tool (claude | opencode | cline)")
   .option("-s, --scope <scope>", "Filter by scope (user | project)")
   .addHelpText(
     "after",
@@ -24,13 +24,18 @@ $ mcps list
     const tool = opts.tool as Tool | undefined;
     const scope = opts.scope as Scope | undefined;
 
-    if (tool && tool !== "claude" && tool !== "opencode") {
-      clack.log.error(`Invalid tool "${tool}". Use "claude" or "opencode".`);
+    if (tool && tool !== "claude" && tool !== "opencode" && tool !== "cline") {
+      clack.log.error(`Invalid tool "${tool}". Use "claude", "opencode", or "cline".`);
       return;
     }
 
     if (scope && scope !== "user" && scope !== "project") {
       clack.log.error(`Invalid scope "${scope}". Use "user" or "project".`);
+      return;
+    }
+
+    if (tool === "cline" && scope === "project") {
+      clack.log.warn("Cline only supports user scope.");
       return;
     }
 
@@ -46,7 +51,9 @@ $ mcps list
         .map((s) => {
           const toolLabel = s.tool === "claude"
             ? pc.cyan("claude")
-            : pc.magenta("opencode");
+            : s.tool === "opencode"
+              ? pc.magenta("opencode")
+              : pc.blue("cline");
           const scopeLabel = s.scope === "user"
             ? pc.green("user")
             : pc.yellow("project");

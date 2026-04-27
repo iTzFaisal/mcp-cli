@@ -1,16 +1,16 @@
 # mcps
 
-**`npx skills` for MCP servers.** A unified CLI to manage [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) servers across **Claude Code** and **OpenCode** — from one place.
+**`npx skills` for MCP servers.** A unified CLI to manage [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) servers across **Claude Code**, **OpenCode**, and **Cline** — from one place.
 
 ## Vision
 
-[`npx skills`](https://github.com/vercel-labs/skills) made it trivial to discover and install agent skills from GitHub repos into any AI coding tool. `mcps` does the same for MCP servers — one command to find, add, and configure MCP servers across Claude Code, OpenCode, and beyond. No more manually hunting down config files and copy-pasting JSON. Just `mcps add <server>` and you're done.
+[`npx skills`](https://github.com/vercel-labs/skills) made it trivial to discover and install agent skills from GitHub repos into any AI coding tool. `mcps` does the same for MCP servers — one command to find, add, and configure MCP servers across Claude Code, OpenCode, Cline, and beyond. No more manually hunting down config files and copy-pasting JSON. Just `mcps add <server>` and you're done.
 
 ## Prerequisites
 
 - **Node.js** 18+ (ES2022 support required)
 - **npm** 9+
-- **Claude Code** and/or **OpenCode** installed (to actually use the managed servers)
+- **Claude Code**, **OpenCode**, and/or **Cline** installed (to actually use the managed servers)
 
 ## Install
 
@@ -53,7 +53,7 @@ mcps add brave-search
 
 ```bash
 mcps add myserver -t claude -s user --transport stdio --command "npx -y my-server"
-mcps add notion -t both -s user --transport http --url "https://mcp.notion.com/mcp"
+mcps add notion -t all -s user --transport http --url "https://mcp.notion.com/mcp"
 mcps add myserver -t opencode -s project --transport stdio --command "node server.js" -e API_KEY=xxx
 ```
 
@@ -61,7 +61,7 @@ Options:
 
 | Flag                   | Description                                             |
 | ---------------------- | ------------------------------------------------------- |
-| `-t, --tool <tool>`    | `claude`, `opencode`, or `both`                         |
+| `-t, --tool <tool>`    | `claude`, `opencode`, `cline`, or `all`                 |
 | `-s, --scope <scope>`  | `user` (global) or `project`                            |
 | `--transport <type>`   | `stdio` (local command) or `http` (remote URL)          |
 | `--command <cmd>`      | Command for stdio transport (e.g. `"npx -y my-server"`) |
@@ -74,18 +74,18 @@ Options:
 mcps copy brave-search                           # interactive wizard
 mcps cp brave-search --tool opencode --scope user
 mcps copy notion --tool claude --scope project --from-tool opencode --from-scope user
-mcps cp myserver --tool both --scope user --force
+mcps cp myserver --tool all --scope user --force
 ```
 
 Options:
 
-| Flag                        | Description                                      |
-| --------------------------- | ------------------------------------------------ |
-| `-t, --tool <tool>`         | Target tool: `claude`, `opencode`, or `both`     |
-| `-s, --scope <scope>`       | Target scope: `user` or `project`                |
-| `--from-tool <tool>`        | Source tool (disambiguate when server exists in multiple) |
-| `--from-scope <scope>`      | Source scope (disambiguate when server exists in multiple) |
-| `-f, --force`               | Overwrite if server already exists at destination |
+| Flag                   | Description                                                |
+| ---------------------- | ---------------------------------------------------------- |
+| `-t, --tool <tool>`    | Target tool: `claude`, `opencode`, `cline`, or `all`       |
+| `-s, --scope <scope>`  | Target scope: `user` or `project`                          |
+| `--from-tool <tool>`   | Source tool (disambiguate when server exists in multiple)  |
+| `--from-scope <scope>` | Source scope (disambiguate when server exists in multiple) |
+| `-f, --force`          | Overwrite if server already exists at destination          |
 
 ### Move a server
 
@@ -93,18 +93,18 @@ Options:
 mcps move brave-search                           # interactive wizard
 mcps mv brave-search --tool opencode --scope user
 mcps move notion --tool claude --scope project --from-tool opencode --from-scope user
-mcps mv myserver --tool both --scope user --force
+mcps mv myserver --tool all --scope user --force
 ```
 
 Options:
 
-| Flag                        | Description                                      |
-| --------------------------- | ------------------------------------------------ |
-| `-t, --tool <tool>`         | Target tool: `claude`, `opencode`, or `both`     |
-| `-s, --scope <scope>`       | Target scope: `user` or `project`                |
-| `--from-tool <tool>`        | Source tool (disambiguate when server exists in multiple) |
-| `--from-scope <scope>`      | Source scope (disambiguate when server exists in multiple) |
-| `-f, --force`               | Overwrite if server already exists at destination |
+| Flag                   | Description                                                |
+| ---------------------- | ---------------------------------------------------------- |
+| `-t, --tool <tool>`    | Target tool: `claude`, `opencode`, `cline`, or `all`       |
+| `-s, --scope <scope>`  | Target scope: `user` or `project`                          |
+| `--from-tool <tool>`   | Source tool (disambiguate when server exists in multiple)  |
+| `--from-scope <scope>` | Source scope (disambiguate when server exists in multiple) |
+| `-f, --force`          | Overwrite if server already exists at destination          |
 
 ### Remove a server
 
@@ -112,15 +112,16 @@ Options:
 mcps rm brave-search                  # interactive confirmation
 mcps rm brave-search -y               # skip confirmation
 mcps rm notion -t claude -s project   # remove from specific tool/scope
-mcps rm myserver --tool both --scope user -y
+mcps rm myserver --tool all --scope user -y
 ```
 
 ## Config files managed
 
-| Tool        | User scope                                 | Project scope                |
-| ----------- | ------------------------------------------ | ---------------------------- |
-| Claude Code | `~/.claude.json` → `mcpServers`            | `./.mcp.json` → `mcpServers` |
-| OpenCode    | `~/.config/opencode/opencode.json` → `mcp` | `./opencode.json` → `mcp`    |
+| Tool        | User scope                                                                                                                     | Project scope                |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------ | ---------------------------- |
+| Claude Code | `~/.claude.json` → `mcpServers`                                                                                                | `./.mcp.json` → `mcpServers` |
+| OpenCode    | `~/.config/opencode/opencode.json` → `mcp`                                                                                     | `./opencode.json` → `mcp`    |
+| Cline       | `~/Library/Application Support/Code/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json` → `mcpServers` | N/A (user-scope only)        |
 
 Config files are never fully replaced — `mcps` reads, modifies only the relevant section, and writes back atomically, preserving all other fields.
 
@@ -162,7 +163,8 @@ src/
 │   └── writer.ts         # Read-modify-write for config files
 └── translators/
     ├── claude-code.ts    # ↔ Claude Code format (command+args split, stdio|http|sse)
-    └── opencode.ts       # ↔ OpenCode format (command as array, local|remote, enabled)
+    ├── opencode.ts       # ↔ OpenCode format (command as array, local|remote, enabled)
+    └── cline.ts          # ↔ Cline format (command+args split, streamableHttp|sse, disabled)
 ```
 
 ## License

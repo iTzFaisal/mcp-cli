@@ -9,8 +9,8 @@ export const removeCommand = new Command("rm")
   .alias("remove")
   .description("Remove an MCP server from one or more tools")
   .argument("<name>", "Server name")
-  .option("-t, --tool <tool>", "Tool: claude | opencode | both (default: both)")
-  .option("-s, --scope <scope>", "Scope: user | project (default: both)")
+  .option("-t, --tool <tool>", "Tool: claude | opencode | cline | all (default: all)")
+  .option("-s, --scope <scope>", "Scope: user | project (default: user)")
   .option("-y, --yes", "Skip confirmation prompt")
   .addHelpText(
     "after",
@@ -19,14 +19,18 @@ Examples:
   $ mcps rm brave-search                          # interactive confirmation
   $ mcps rm brave-search -y                       # skip confirmation
   $ mcps rm notion -t claude -s project
-  $ mcps rm myserver --tool both --scope user -y`
+  $ mcps rm myserver --tool all --scope user -y`
   )
   .action(async (name: string, opts: RmOpts) => {
-    const tool = (opts.tool ?? "both") as Tool | "both";
+    const tool = (opts.tool ?? "all") as Tool | "all";
     const scope = (opts.scope ?? "user") as Scope;
 
-    if (tool !== "claude" && tool !== "opencode" && tool !== "both") {
-      clack.log.error(`Invalid tool "${opts.tool}". Use claude, opencode, or both.`);
+    if (opts.tool === "both") {
+      clack.log.error(`"both" is not supported. Use "all" for all tools, or specify claude, opencode, or cline.`);
+      return;
+    }
+    if (tool !== "claude" && tool !== "opencode" && tool !== "cline" && tool !== "all") {
+      clack.log.error(`Invalid tool "${opts.tool}". Use claude, opencode, cline, or all.`);
       return;
     }
     if (scope !== "user" && scope !== "project") {
@@ -35,13 +39,17 @@ Examples:
     }
 
     const targets: Tool[] =
-      tool === "both" ? ["claude", "opencode"] : [tool as Tool];
+      tool === "all" ? ["claude", "opencode", "cline"] : [tool as Tool];
 
     const scopes: Scope[] = opts.scope ? [scope] : ["user", "project"];
     let found = false;
 
     for (const t of targets) {
       for (const s of scopes) {
+        if (t === "cline" && s === "project") {
+          clack.log.warn("Cline only supports user scope. Skipping.");
+          continue;
+        }
         const existing = readServers(t, s).find(
           (srv) => srv.server.name === name
         );

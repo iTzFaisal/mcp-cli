@@ -27,10 +27,11 @@ npx vitest run -t "writes stdio server"
 ## Architecture
 
 - `src/index.ts` — CLI entry point, Commander program setup, `mcp` binary
-- `src/types.ts` — universal MCP server model (`McpServer`, `Transport`, `Scope`, `Tool`)
+- `src/types.ts` — universal MCP server model (`McpServer`, `Transport`, `Scope`, `Tool`, `disabled`)
 - `src/translators/` — bidirectional translation between universal model and tool-native formats
   - `claude-code.ts` ↔ `mcpServers` key, `command`+`args` split, types `stdio`|`http`|`sse`
   - `opencode.ts` ↔ `mcp` key, `command` as array, types `local`|`remote`, has `enabled`
+  - `cline.ts` ↔ `mcpServers` key, `command`+`args` split, types `streamableHttp`|`sse`, has `disabled`
 - `src/config/paths.ts` — resolves config file paths per tool/scope, detects project root via `.git`
 - `src/config/reader.ts` — reads and parses servers from all tool configs
 - `src/config/writer.ts` — reads full JSON, modifies relevant section, writes back atomically
@@ -45,10 +46,11 @@ npx vitest run -t "writes stdio server"
 
 ## Config file paths the tool manages
 
-| Tool        | User scope                                 | Project scope                |
-| ----------- | ------------------------------------------ | ---------------------------- |
-| Claude Code | `~/.claude.json` → `mcpServers`            | `./.mcp.json` → `mcpServers` |
-| OpenCode    | `~/.config/opencode/opencode.json` → `mcp` | `./opencode.json` → `mcp`    |
+| Tool        | User scope                                                                                                                     | Project scope                |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------ | ---------------------------- |
+| Claude Code | `~/.claude.json` → `mcpServers`                                                                                                | `./.mcp.json` → `mcpServers` |
+| OpenCode    | `~/.config/opencode/opencode.json` → `mcp`                                                                                     | `./opencode.json` → `mcp`    |
+| Cline       | `~/Library/Application Support/Code/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json` → `mcpServers` | N/A (user-scope only)        |
 
 ## Testing notes
 

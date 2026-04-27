@@ -18,9 +18,9 @@ The move command SHALL support a non-interactive mode when `--tool` and `--scope
 - **WHEN** user runs `mcps move myserver --tool opencode --scope user --from-tool claude --from-scope project`
 - **THEN** the system moves the server from the specified source to the destination
 
-#### Scenario: Move to both tools
-- **WHEN** user runs `mcps move myserver --tool both --scope user`
-- **THEN** the system writes the server to both claude and opencode at the target scope, then removes from the source
+#### Scenario: Move to all tools
+- **WHEN** user runs `mcps move myserver --tool all --scope user`
+- **THEN** the system writes the server to Claude Code, OpenCode, and Cline at the target scope, then removes from the source
 
 #### Scenario: Missing required flags triggers error
 - **WHEN** user runs `mcps move myserver --tool opencode` without `--scope`
@@ -59,7 +59,7 @@ The move command SHALL launch an interactive wizard when `--tool` and `--scope` 
 
 #### Scenario: Destination tool selection
 - **WHEN** the interactive wizard runs
-- **THEN** the system prompts the user to select from: Claude Code, OpenCode, or Both
+- **THEN** the system prompts the user to select from: Claude Code, OpenCode, Cline, or All
 
 #### Scenario: Destination scope selection
 - **WHEN** the interactive wizard runs

@@ -23,7 +23,48 @@ export function opencodeProjectPath(projectRoot: string): string {
   return path.join(projectRoot, "opencode.json");
 }
 
+export function clineUserPath(): string {
+  const platform = process.platform;
+  if (platform === "win32") {
+    return path.join(
+      process.env.APPDATA ?? path.join(home(), "AppData", "Roaming"),
+      "Code",
+      "User",
+      "globalStorage",
+      "saoudrizwan.claude-dev",
+      "settings",
+      "cline_mcp_settings.json"
+    );
+  }
+  if (platform === "linux") {
+    return path.join(
+      home(),
+      ".config",
+      "Code",
+      "User",
+      "globalStorage",
+      "saoudrizwan.claude-dev",
+      "settings",
+      "cline_mcp_settings.json"
+    );
+  }
+  return path.join(
+    home(),
+    "Library",
+    "Application Support",
+    "Code",
+    "User",
+    "globalStorage",
+    "saoudrizwan.claude-dev",
+    "settings",
+    "cline_mcp_settings.json"
+  );
+}
+
 export function configPath(tool: Tool, scope: Scope, projectRoot?: string): string {
+  if (tool === "cline") {
+    return clineUserPath();
+  }
   if (tool === "claude") {
     return scope === "user" ? claudeUserPath() : claudeProjectPath(projectRoot ?? detectProjectRoot());
   }

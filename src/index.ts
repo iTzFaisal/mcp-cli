@@ -20,7 +20,7 @@ program
   │  ██║ ╚═╝ ██║╚██████╗ ██║         │
   │  ╚═╝     ╚═╝ ╚═════╝ ╚═╝         │
   └───────────────────────────────────┘
-  Unified MCP server manager for Claude Code & OpenCode`
+  Unified MCP server manager for Claude Code, OpenCode & Cline`
   )
   .version("0.1.0");
 

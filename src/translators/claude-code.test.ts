@@ -73,6 +73,23 @@ describe("fromClaudeCode", () => {
     });
     expect(result.transport).toBe("http");
     expect(result.url).toBe("https://mcp.example.com/sse");
+    expect(result.disabled).toBeUndefined();
+  });
+
+  it("returns disabled as undefined for stdio server", () => {
+    const result = fromClaudeCode("myserver", {
+      command: "node",
+      args: [],
+    });
+    expect(result.disabled).toBeUndefined();
+  });
+
+  it("returns disabled as undefined for http server", () => {
+    const result = fromClaudeCode("myserver", {
+      type: "http",
+      url: "https://mcp.example.com",
+    });
+    expect(result.disabled).toBeUndefined();
   });
 });
 
@@ -150,5 +167,25 @@ describe("toClaudeCode", () => {
       headers: {},
     });
     expect(result).not.toHaveProperty("headers");
+  });
+
+  it("omits disabled field when writing stdio server", () => {
+    const result = toClaudeCode({
+      name: "myserver",
+      transport: "stdio",
+      command: ["node"],
+      disabled: true,
+    });
+    expect(result).not.toHaveProperty("disabled");
+  });
+
+  it("omits disabled field when writing http server", () => {
+    const result = toClaudeCode({
+      name: "myserver",
+      transport: "http",
+      url: "https://mcp.example.com",
+      disabled: true,
+    });
+    expect(result).not.toHaveProperty("disabled");
   });
 });

@@ -20,6 +20,7 @@ export function fromOpenCode(
       transport: "http",
       url: raw.url,
       headers: raw.headers,
+      disabled: raw.enabled !== undefined ? !raw.enabled : undefined,
     };
   }
 
@@ -28,15 +29,18 @@ export function fromOpenCode(
     transport: "stdio",
     command: raw.command,
     env: raw.environment,
+    disabled: raw.enabled !== undefined ? !raw.enabled : undefined,
   };
 }
 
 export function toOpenCode(server: McpServer): OpenCodeServer {
+  const enabled = server.disabled !== undefined ? !server.disabled : true;
+
   if (server.transport === "http") {
     const out: OpenCodeServer = {
       type: "remote",
       url: server.url,
-      enabled: true,
+      enabled,
       timeout: 60000,
     };
     if (server.headers && Object.keys(server.headers).length > 0) {
@@ -48,7 +52,7 @@ export function toOpenCode(server: McpServer): OpenCodeServer {
   const out: OpenCodeServer = {
     type: "local",
     command: server.command ?? [],
-    enabled: true,
+    enabled,
     timeout: 60000,
   };
   if (server.env && Object.keys(server.env).length > 0) {

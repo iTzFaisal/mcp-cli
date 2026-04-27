@@ -4,6 +4,7 @@ import type { McpServer, Scope, Tool } from "../types.js";
 import { configPath, detectProjectRoot } from "./paths.js";
 import { toClaudeCode } from "../translators/claude-code.js";
 import { toOpenCode } from "../translators/opencode.js";
+import { toCline } from "../translators/cline.js";
 
 function readOrInit(filePath: string): Record<string, unknown> {
   try {
@@ -23,13 +24,18 @@ export function writeServer(
   tool: Tool,
   scope: Scope
 ): void {
+  if (tool === "cline" && scope === "project") return;
+
   const projectRoot = scope === "project" ? detectProjectRoot() : undefined;
   const filePath = configPath(tool, scope, projectRoot);
   ensureDir(filePath);
 
   const data = readOrInit(filePath);
 
-  if (tool === "claude") {
+  if (tool === "cline") {
+    if (!data.mcpServers) data.mcpServers = {};
+    (data.mcpServers as Record<string, unknown>)[server.name] = toCline(server);
+  } else if (tool === "claude") {
     if (!data.mcpServers) data.mcpServers = {};
     (data.mcpServers as Record<string, unknown>)[server.name] = toClaudeCode(server);
   } else {
@@ -45,13 +51,15 @@ export function removeServer(
   tool: Tool,
   scope: Scope
 ): boolean {
+  if (tool === "cline" && scope === "project") return false;
+
   const projectRoot = scope === "project" ? detectProjectRoot() : undefined;
   const filePath = configPath(tool, scope, projectRoot);
 
   const data = readOrInit(filePath);
 
   let container: Record<string, unknown> | undefined;
-  if (tool === "claude") {
+  if (tool === "cline" || tool === "claude") {
     container = data.mcpServers as Record<string, unknown> | undefined;
   } else {
     container = data.mcp as Record<string, unknown> | undefined;

@@ -45,6 +45,32 @@ describe("fromOpenCode", () => {
     });
     expect(result.headers).toEqual({ Authorization: "Bearer token" });
   });
+
+  it("maps enabled true to disabled false", () => {
+    const result = fromOpenCode("myserver", {
+      type: "local",
+      command: ["npx", "-y", "server"],
+      enabled: true,
+    });
+    expect(result.disabled).toBe(false);
+  });
+
+  it("maps enabled false to disabled true", () => {
+    const result = fromOpenCode("myserver", {
+      type: "local",
+      command: ["npx", "-y", "server"],
+      enabled: false,
+    });
+    expect(result.disabled).toBe(true);
+  });
+
+  it("maps enabled undefined to disabled undefined", () => {
+    const result = fromOpenCode("myserver", {
+      type: "local",
+      command: ["npx", "-y", "server"],
+    });
+    expect(result.disabled).toBeUndefined();
+  });
 });
 
 describe("toOpenCode", () => {
@@ -122,5 +148,34 @@ describe("toOpenCode", () => {
       headers: {},
     });
     expect(result).not.toHaveProperty("headers");
+  });
+
+  it("maps disabled false to enabled true", () => {
+    const result = toOpenCode({
+      name: "myserver",
+      transport: "stdio",
+      command: ["node"],
+      disabled: false,
+    });
+    expect(result.enabled).toBe(true);
+  });
+
+  it("maps disabled true to enabled false", () => {
+    const result = toOpenCode({
+      name: "myserver",
+      transport: "stdio",
+      command: ["node"],
+      disabled: true,
+    });
+    expect(result.enabled).toBe(false);
+  });
+
+  it("defaults enabled to true when disabled is undefined", () => {
+    const result = toOpenCode({
+      name: "myserver",
+      transport: "stdio",
+      command: ["node"],
+    });
+    expect(result.enabled).toBe(true);
   });
 });

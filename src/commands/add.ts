@@ -8,7 +8,7 @@ import type { McpServer, Scope, Tool, Transport } from "../types.js";
 export const addCommand = new Command("add")
   .description("Add an MCP server to one or more tools")
   .argument("<name>", "Server name")
-  .option("-t, --tool <tool>", "Tool: claude | opencode | both")
+  .option("-t, --tool <tool>", "Tool: claude | opencode | cline | all")
   .option("-s, --scope <scope>", "Scope: user | project")
   .option("--transport <type>", "Transport: stdio | http")
   .option("--command <cmd>", 'Command (stdio transport), e.g. "npx -y my-server"')
@@ -20,13 +20,13 @@ export const addCommand = new Command("add")
 Examples:
   $ mcps add brave-search                         # interactive wizard
   $ mcps add myserver -t claude -s user --transport stdio --command "npx -y my-server"
-  $ mcps add notion -t both -s user --transport http --url "https://mcp.notion.com/mcp"
+  $ mcps add notion -t all -s user --transport http --url "https://mcp.notion.com/mcp"
   $ mcps add myserver -t opencode -s project --transport stdio --command "node server.js" -e KEY=val`
   )
   .action(async (name: string, opts: AddOpts) => {
     const isNonInteractive = opts.tool && opts.scope && opts.transport;
 
-    let tool: Tool | "both";
+    let tool: Tool | "all";
     let scope: Scope;
     let transport: Transport;
     let command: string[] | undefined;
@@ -34,12 +34,16 @@ Examples:
     let env: Record<string, string> | undefined;
 
     if (isNonInteractive) {
-      tool = opts.tool as Tool | "both";
+      tool = opts.tool as Tool | "all";
       scope = opts.scope as Scope;
       transport = opts.transport as Transport;
 
-      if (tool !== "claude" && tool !== "opencode" && tool !== "both") {
-        clack.log.error(`Invalid tool "${opts.tool}". Use claude, opencode, or both.`);
+      if (opts.tool === "both") {
+        clack.log.error(`"both" is not supported. Use "all" for all tools, or specify claude, opencode, or cline.`);
+        return;
+      }
+      if (tool !== "claude" && tool !== "opencode" && tool !== "cline" && tool !== "all") {
+        clack.log.error(`Invalid tool "${opts.tool}". Use claude, opencode, cline, or all.`);
         return;
       }
       if (scope !== "user" && scope !== "project") {
@@ -76,11 +80,12 @@ Examples:
         options: [
           { value: "claude", label: "Claude Code" },
           { value: "opencode", label: "OpenCode" },
-          { value: "both", label: "Both" },
+          { value: "cline", label: "Cline" },
+          { value: "all", label: "All" },
         ],
       });
       if (clack.isCancel(toolResult)) return;
-      tool = toolResult as Tool | "both";
+      tool = toolResult as Tool | "all";
 
       const scopeResult = await clack.select({
         message: "Which scope?",
@@ -137,11 +142,15 @@ Examples:
       ...(env && { env }),
     };
 
-    const tools: (Tool | "both")[] = [tool];
+    const tools: (Tool | "all")[] = [tool];
 
     for (const t of tools) {
-      const targets: Tool[] = t === "both" ? ["claude", "opencode"] : [t as Tool];
+      const targets: Tool[] = t === "all" ? ["claude", "opencode", "cline"] : [t as Tool];
       for (const target of targets) {
+        if (target === "cline" && scope === "project") {
+          clack.log.warn("Cline only supports user scope. Skipping.");
+          continue;
+        }
         const existing = readServers(target, scope).find(
           (s) => s.server.name === name
         );

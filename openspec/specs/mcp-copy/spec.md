@@ -71,13 +71,17 @@ The system SHALL prevent accidental overwrites when the server already exists at
 - **WHEN** user runs `mcps copy brave-search --tool opencode --scope user --force` and the server exists at the destination
 - **THEN** system overwrites the existing server configuration without prompting
 
-### Requirement: Copy to "both" tools
-The system SHALL support copying a server to both Claude Code and OpenCode simultaneously.
+### Requirement: Copy to "all" tools
+The system SHALL support copying a server to Claude Code, OpenCode, and Cline simultaneously.
 
-#### Scenario: Copy to both tools interactively
-- **WHEN** user selects "Both" as the target tool in interactive mode
-- **THEN** system writes the server to both tools at the selected scope
+#### Scenario: Copy to all tools interactively
+- **WHEN** user selects "All" as the target tool in interactive mode
+- **THEN** system writes the server to all tools at the selected scope
 
-#### Scenario: Copy to both tools non-interactively
-- **WHEN** user runs `mcps copy brave-search --tool both --scope user`
-- **THEN** system writes to both Claude Code and OpenCode user-scope configs without prompts
+#### Scenario: Copy to all tools non-interactively
+- **WHEN** user runs `mcps copy brave-search --tool all --scope user`
+- **THEN** system writes to Claude Code, OpenCode, and Cline user-scope configs without prompts
+
+#### Scenario: Copy from Cline to Claude Code
+- **WHEN** user runs `mcps copy myserver --from cline --to claude`
+- **THEN** system reads the server from Cline config and writes it to Claude Code config

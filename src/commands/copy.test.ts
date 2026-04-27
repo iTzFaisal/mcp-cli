@@ -183,7 +183,7 @@ describe("copy command", () => {
       });
     });
 
-    it("copies to both tools", () => {
+    it("copies to all tools", () => {
       fs.writeFileSync(
         claudeFile,
         JSON.stringify({
@@ -193,7 +193,7 @@ describe("copy command", () => {
         })
       );
 
-      runCli("copy my-server --tool both --scope user --force");
+      runCli("copy my-server --tool all --scope user --force");
 
       const claudeData = JSON.parse(fs.readFileSync(claudeFile, "utf-8"));
       const opencodeData = JSON.parse(

@@ -222,9 +222,9 @@ describe("CLI integration tests", () => {
       });
     });
 
-    it("adds server to both tools", () => {
+    it("adds server to all tools", () => {
       cliWithHome(
-        'add dual-srv -t both -s user --transport stdio --command "node s.js"'
+        'add dual-srv -t all -s user --transport stdio --command "node s.js"'
       );
 
       const claudeData = JSON.parse(fs.readFileSync(claudeFile, "utf-8"));

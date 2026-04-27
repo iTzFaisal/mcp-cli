@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: List all MCP servers across tools
-The system SHALL display all configured MCP servers from both Claude Code and OpenCode in a single unified view.
+The system SHALL display all configured MCP servers from Claude Code, OpenCode, and Cline in a single unified view.
 
 #### Scenario: List with no servers configured
 - **WHEN** user runs `mcp list` and no servers exist in any tool
@@ -29,6 +29,10 @@ The system SHALL allow filtering the list to a specific tool.
 #### Scenario: Filter to OpenCode only
 - **WHEN** user runs `mcp list --tool opencode`
 - **THEN** system displays only servers configured in OpenCode
+
+#### Scenario: Filter to Cline only
+- **WHEN** user runs `mcps list --tool cline`
+- **THEN** system displays only servers configured in Cline
 
 ### Requirement: Filter list by scope
 The system SHALL allow filtering the list to user or project scope.

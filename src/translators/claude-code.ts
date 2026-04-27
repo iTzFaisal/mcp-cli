@@ -19,6 +19,7 @@ export function fromClaudeCode(
       transport: "http",
       url: raw.url,
       headers: raw.headers,
+      disabled: undefined,
     };
   }
 
@@ -26,12 +27,13 @@ export function fromClaudeCode(
   if (raw.command) cmd.push(raw.command);
   if (raw.args) cmd.push(...raw.args);
 
-  return {
-    name,
-    transport: "stdio",
-    command: cmd,
-    env: raw.env,
-  };
+    return {
+      name,
+      transport: "stdio",
+      command: cmd,
+      env: raw.env,
+      disabled: undefined,
+    };
 }
 
 export function toClaudeCode(server: McpServer): ClaudeCodeServer {
