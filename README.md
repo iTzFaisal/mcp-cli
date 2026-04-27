@@ -68,6 +68,25 @@ Options:
 | `--url <url>`          | URL for http transport                                  |
 | `-e, --env <pairs...>` | Environment variables (`KEY=VALUE`)                     |
 
+### Copy a server
+
+```bash
+mcps copy brave-search                           # interactive wizard
+mcps cp brave-search --tool opencode --scope user
+mcps copy notion --tool claude --scope project --from-tool opencode --from-scope user
+mcps cp myserver --tool both --scope user --force
+```
+
+Options:
+
+| Flag                        | Description                                      |
+| --------------------------- | ------------------------------------------------ |
+| `-t, --tool <tool>`         | Target tool: `claude`, `opencode`, or `both`     |
+| `-s, --scope <scope>`       | Target scope: `user` or `project`                |
+| `--from-tool <tool>`        | Source tool (disambiguate when server exists in multiple) |
+| `--from-scope <scope>`      | Source scope (disambiguate when server exists in multiple) |
+| `-f, --force`               | Overwrite if server already exists at destination |
+
 ### Remove a server
 
 ```bash
@@ -115,6 +134,7 @@ src/
 ├── commands/
 │   ├── list.ts           # `mcps list` / `mcps ls`
 │   ├── add.ts            # `mcps add`
+│   ├── copy.ts           # `mcps copy` / `mcps cp`
 │   └── remove.ts         # `mcps rm` / `mcps remove`
 ├── config/
 │   ├── paths.ts          # Resolves config file paths per tool/scope

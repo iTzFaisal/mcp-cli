@@ -3,6 +3,7 @@ import { Command } from "commander";
 import { listCommand } from "./commands/list.js";
 import { addCommand } from "./commands/add.js";
 import { removeCommand } from "./commands/remove.js";
+import { copyCommand } from "./commands/copy.js";
 
 const program = new Command();
 
@@ -25,5 +26,6 @@ program
 program.addCommand(listCommand);
 program.addCommand(addCommand);
 program.addCommand(removeCommand);
+program.addCommand(copyCommand);
 
 program.parse();

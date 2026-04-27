@@ -34,7 +34,7 @@ npx vitest run -t "writes stdio server"
 - `src/config/paths.ts` — resolves config file paths per tool/scope, detects project root via `.git`
 - `src/config/reader.ts` — reads and parses servers from all tool configs
 - `src/config/writer.ts` — reads full JSON, modifies relevant section, writes back atomically
-- `src/commands/` — Commander subcommands: `list.ts`, `add.ts`, `remove.ts`
+- `src/commands/` — Commander subcommands: `list.ts`, `add.ts`, `remove.ts`, `copy.ts`
 
 ## Key conventions
 
