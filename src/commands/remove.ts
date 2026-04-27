@@ -16,10 +16,10 @@ export const removeCommand = new Command("rm")
     "after",
     `
 Examples:
-  $ mcp rm brave-search                          # interactive confirmation
-  $ mcp rm brave-search -y                       # skip confirmation
-  $ mcp rm notion -t claude -s project
-  $ mcp rm myserver --tool both --scope user -y`
+  $ mcps rm brave-search                          # interactive confirmation
+  $ mcps rm brave-search -y                       # skip confirmation
+  $ mcps rm notion -t claude -s project
+  $ mcps rm myserver --tool both --scope user -y`
   )
   .action(async (name: string, opts: RmOpts) => {
     const tool = (opts.tool ?? "both") as Tool | "both";

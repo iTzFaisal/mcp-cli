@@ -18,10 +18,10 @@ export const addCommand = new Command("add")
     "after",
     `
 Examples:
-  $ mcp add brave-search                         # interactive wizard
-  $ mcp add myserver -t claude -s user --transport stdio --command "npx -y my-server"
-  $ mcp add notion -t both -s user --transport http --url "https://mcp.notion.com/mcp"
-  $ mcp add myserver -t opencode -s project --transport stdio --command "node server.js" -e KEY=val`
+  $ mcps add brave-search                         # interactive wizard
+  $ mcps add myserver -t claude -s user --transport stdio --command "npx -y my-server"
+  $ mcps add notion -t both -s user --transport http --url "https://mcp.notion.com/mcp"
+  $ mcps add myserver -t opencode -s project --transport stdio --command "node server.js" -e KEY=val`
   )
   .action(async (name: string, opts: AddOpts) => {
     const isNonInteractive = opts.tool && opts.scope && opts.transport;

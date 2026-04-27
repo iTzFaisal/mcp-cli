@@ -1,8 +1,8 @@
-# mcp-cli
+# mcps
 
-A unified CLI to manage [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) servers across **Claude Code** and **OpenCode** — from one place.
+**`npx` for MCPs.** A unified CLI to manage [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) servers across **Claude Code** and **OpenCode** — from one place.
 
-Instead of manually editing multiple config files with different formats, use `mcp` to add, list, and remove servers across tools with a single command.
+Instead of manually editing multiple config files with different formats, use `mcps` to add, list, and remove servers across tools with a single command.
 
 ## Prerequisites
 
@@ -16,7 +16,7 @@ Instead of manually editing multiple config files with different formats, use `m
 npm install -g @itzfaisal/mcp-cli
 ```
 
-The `mcp` command is now available globally.
+The `mcps` command is now available globally.
 
 ### Install from source
 
@@ -33,10 +33,10 @@ npm link
 ### List servers
 
 ```bash
-mcp list                              # all servers across all tools and scopes
-mcp list --tool claude                # only Claude Code servers
-mcp list --scope project             # only project-level servers
-mcp ls -t opencode -s user           # short alias + combined filters
+mcps list                              # all servers across all tools and scopes
+mcps list --tool claude                # only Claude Code servers
+mcps list --scope project             # only project-level servers
+mcps ls -t opencode -s user           # short alias + combined filters
 ```
 
 ### Add a server
@@ -44,15 +44,15 @@ mcp ls -t opencode -s user           # short alias + combined filters
 **Interactive** (prompts for tool, scope, transport, and command/URL):
 
 ```bash
-mcp add brave-search
+mcps add brave-search
 ```
 
 **Non-interactive** (all flags provided, no prompts):
 
 ```bash
-mcp add myserver -t claude -s user --transport stdio --command "npx -y my-server"
-mcp add notion -t both -s user --transport http --url "https://mcp.notion.com/mcp"
-mcp add myserver -t opencode -s project --transport stdio --command "node server.js" -e API_KEY=xxx
+mcps add myserver -t claude -s user --transport stdio --command "npx -y my-server"
+mcps add notion -t both -s user --transport http --url "https://mcp.notion.com/mcp"
+mcps add myserver -t opencode -s project --transport stdio --command "node server.js" -e API_KEY=xxx
 ```
 
 Options:
@@ -69,10 +69,10 @@ Options:
 ### Remove a server
 
 ```bash
-mcp rm brave-search                  # interactive confirmation
-mcp rm brave-search -y               # skip confirmation
-mcp rm notion -t claude -s project   # remove from specific tool/scope
-mcp rm myserver --tool both --scope user -y
+mcps rm brave-search                  # interactive confirmation
+mcps rm brave-search -y               # skip confirmation
+mcps rm notion -t claude -s project   # remove from specific tool/scope
+mcps rm myserver --tool both --scope user -y
 ```
 
 ## Config files managed
@@ -82,7 +82,7 @@ mcp rm myserver --tool both --scope user -y
 | Claude Code | `~/.claude.json` → `mcpServers` | `./.mcp.json` → `mcpServers` |
 | OpenCode | `~/.config/opencode/opencode.json` → `mcp` | `./opencode.json` → `mcp` |
 
-Config files are never fully replaced — `mcp` reads, modifies only the relevant section, and writes back atomically, preserving all other fields.
+Config files are never fully replaced — `mcps` reads, modifies only the relevant section, and writes back atomically, preserving all other fields.
 
 ## Development
 
@@ -111,9 +111,9 @@ src/
 ├── index.ts              # CLI entry point, Commander program setup
 ├── types.ts              # Universal MCP server model (McpServer, Transport, Scope, Tool)
 ├── commands/
-│   ├── list.ts           # `mcp list` / `mcp ls`
-│   ├── add.ts            # `mcp add`
-│   └── remove.ts         # `mcp rm` / `mcp remove`
+│   ├── list.ts           # `mcps list` / `mcps ls`
+│   ├── add.ts            # `mcps add`
+│   └── remove.ts         # `mcps rm` / `mcps remove`
 ├── config/
 │   ├── paths.ts          # Resolves config file paths per tool/scope
 │   ├── reader.ts         # Reads and parses servers from all tool configs

@@ -7,7 +7,7 @@ import { removeCommand } from "./commands/remove.js";
 const program = new Command();
 
 program
-  .name("mcp")
+  .name("mcps")
   .description(
     `
   ┌───────────────────────────────────┐

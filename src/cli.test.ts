@@ -70,7 +70,7 @@ describe("CLI integration tests", () => {
         encoding: "utf-8",
       });
       expect(output).toContain("Examples:");
-      expect(output).toContain("mcp list --tool claude");
+      expect(output).toContain("mcps list --tool claude");
     });
 
     it("add command shows help examples", () => {

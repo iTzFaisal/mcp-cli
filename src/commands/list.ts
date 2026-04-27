@@ -13,9 +13,11 @@ export const listCommand = new Command("list")
     "after",
     `
 Examples:
-  $ mcp list
-  $ mcp list --tool claude
-  $ mcp list --scope project
+$ mcps list
+
+  $ mcps list --tool claude
+
+  $ mcps list --scope project
   $ mcp ls -t opencode -s user`
   )
   .action((opts: { tool?: string; scope?: string }) => {

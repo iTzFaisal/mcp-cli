@@ -4,7 +4,7 @@
 
 - Published as **`@itzfaisal/mcp-cli`** on npm
 - Install: `npm install -g @itzfaisal/mcp-cli`
-- Binary: `mcp`
+- Binary: `mcps`
 
 ## Commands
 
