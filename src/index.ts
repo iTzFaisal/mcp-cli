@@ -4,6 +4,7 @@ import { listCommand } from "./commands/list.js";
 import { addCommand } from "./commands/add.js";
 import { removeCommand } from "./commands/remove.js";
 import { copyCommand } from "./commands/copy.js";
+import { moveCommand } from "./commands/move.js";
 
 const program = new Command();
 
@@ -27,5 +28,6 @@ program.addCommand(listCommand);
 program.addCommand(addCommand);
 program.addCommand(removeCommand);
 program.addCommand(copyCommand);
+program.addCommand(moveCommand);
 
 program.parse();

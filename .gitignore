@@ -27,3 +27,5 @@ npm-debug.log*
 .mcp.json
 opencode.json
 
+cline_mcp_example.json
+cline_path.md
