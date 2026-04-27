@@ -7,6 +7,7 @@ export interface OpenCodeServer {
   url?: string;
   headers?: Record<string, string>;
   enabled?: boolean;
+  timeout?: number;
 }
 
 export function fromOpenCode(
@@ -36,6 +37,7 @@ export function toOpenCode(server: McpServer): OpenCodeServer {
       type: "remote",
       url: server.url,
       enabled: true,
+      timeout: 60000,
     };
     if (server.headers && Object.keys(server.headers).length > 0) {
       out.headers = server.headers;
@@ -47,6 +49,7 @@ export function toOpenCode(server: McpServer): OpenCodeServer {
     type: "local",
     command: server.command ?? [],
     enabled: true,
+    timeout: 60000,
   };
   if (server.env && Object.keys(server.env).length > 0) {
     out.environment = server.env;

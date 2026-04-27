@@ -104,6 +104,7 @@ describe("move command", () => {
         type: "local",
         command: ["npx", "-y", "brave-search"],
         enabled: true,
+        timeout: 60000,
       });
 
       const claudeData = JSON.parse(fs.readFileSync(claudeFile, "utf-8"));

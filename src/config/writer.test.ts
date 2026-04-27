@@ -75,6 +75,7 @@ describe("writeServer and removeServer", () => {
         url: "https://mcp.example.com",
         headers: { Authorization: "Bearer token" },
         enabled: true,
+        timeout: 60000,
       });
     });
 

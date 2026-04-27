@@ -58,6 +58,7 @@ describe("toOpenCode", () => {
       type: "local",
       command: ["npx", "-y", "my-server"],
       enabled: true,
+      timeout: 60000,
     });
   });
 
@@ -99,6 +100,7 @@ describe("toOpenCode", () => {
       type: "remote",
       url: "https://mcp.example.com",
       enabled: true,
+      timeout: 60000,
     });
   });
 

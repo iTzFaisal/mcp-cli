@@ -131,6 +131,7 @@ describe("copy command", () => {
         type: "local",
         command: ["npx", "-y", "brave-search"],
         enabled: true,
+        timeout: 60000,
       });
     });
 

@@ -206,6 +206,7 @@ describe("CLI integration tests", () => {
         type: "remote",
         url: "https://mcp.example.com",
         enabled: true,
+        timeout: 60000,
       });
     });
 
