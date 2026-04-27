@@ -87,6 +87,25 @@ Options:
 | `--from-scope <scope>`      | Source scope (disambiguate when server exists in multiple) |
 | `-f, --force`               | Overwrite if server already exists at destination |
 
+### Move a server
+
+```bash
+mcps move brave-search                           # interactive wizard
+mcps mv brave-search --tool opencode --scope user
+mcps move notion --tool claude --scope project --from-tool opencode --from-scope user
+mcps mv myserver --tool both --scope user --force
+```
+
+Options:
+
+| Flag                        | Description                                      |
+| --------------------------- | ------------------------------------------------ |
+| `-t, --tool <tool>`         | Target tool: `claude`, `opencode`, or `both`     |
+| `-s, --scope <scope>`       | Target scope: `user` or `project`                |
+| `--from-tool <tool>`        | Source tool (disambiguate when server exists in multiple) |
+| `--from-scope <scope>`      | Source scope (disambiguate when server exists in multiple) |
+| `-f, --force`               | Overwrite if server already exists at destination |
+
 ### Remove a server
 
 ```bash
@@ -135,6 +154,7 @@ src/
 │   ├── list.ts           # `mcps list` / `mcps ls`
 │   ├── add.ts            # `mcps add`
 │   ├── copy.ts           # `mcps copy` / `mcps cp`
+│   ├── move.ts           # `mcps move` / `mcps mv`
 │   └── remove.ts         # `mcps rm` / `mcps remove`
 ├── config/
 │   ├── paths.ts          # Resolves config file paths per tool/scope
