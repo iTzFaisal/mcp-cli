@@ -1,8 +1,10 @@
 # mcps
 
-**`npx` for MCPs.** A unified CLI to manage [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) servers across **Claude Code** and **OpenCode** — from one place.
+**`npx skills` for MCP servers.** A unified CLI to manage [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) servers across **Claude Code** and **OpenCode** — from one place.
 
-Instead of manually editing multiple config files with different formats, use `mcps` to add, list, and remove servers across tools with a single command.
+## Vision
+
+[`npx skills`](https://github.com/vercel-labs/skills) made it trivial to discover and install agent skills from GitHub repos into any AI coding tool. `mcps` does the same for MCP servers — one command to find, add, and configure MCP servers across Claude Code, OpenCode, and beyond. No more manually hunting down config files and copy-pasting JSON. Just `mcps add <server>` and you're done.
 
 ## Prerequisites
 
@@ -57,14 +59,14 @@ mcps add myserver -t opencode -s project --transport stdio --command "node serve
 
 Options:
 
-| Flag | Description |
-|---|---|
-| `-t, --tool <tool>` | `claude`, `opencode`, or `both` |
-| `-s, --scope <scope>` | `user` (global) or `project` |
-| `--transport <type>` | `stdio` (local command) or `http` (remote URL) |
-| `--command <cmd>` | Command for stdio transport (e.g. `"npx -y my-server"`) |
-| `--url <url>` | URL for http transport |
-| `-e, --env <pairs...>` | Environment variables (`KEY=VALUE`) |
+| Flag                   | Description                                             |
+| ---------------------- | ------------------------------------------------------- |
+| `-t, --tool <tool>`    | `claude`, `opencode`, or `both`                         |
+| `-s, --scope <scope>`  | `user` (global) or `project`                            |
+| `--transport <type>`   | `stdio` (local command) or `http` (remote URL)          |
+| `--command <cmd>`      | Command for stdio transport (e.g. `"npx -y my-server"`) |
+| `--url <url>`          | URL for http transport                                  |
+| `-e, --env <pairs...>` | Environment variables (`KEY=VALUE`)                     |
 
 ### Remove a server
 
@@ -77,10 +79,10 @@ mcps rm myserver --tool both --scope user -y
 
 ## Config files managed
 
-| Tool | User scope | Project scope |
-|---|---|---|
-| Claude Code | `~/.claude.json` → `mcpServers` | `./.mcp.json` → `mcpServers` |
-| OpenCode | `~/.config/opencode/opencode.json` → `mcp` | `./opencode.json` → `mcp` |
+| Tool        | User scope                                 | Project scope                |
+| ----------- | ------------------------------------------ | ---------------------------- |
+| Claude Code | `~/.claude.json` → `mcpServers`            | `./.mcp.json` → `mcpServers` |
+| OpenCode    | `~/.config/opencode/opencode.json` → `mcp` | `./opencode.json` → `mcp`    |
 
 Config files are never fully replaced — `mcps` reads, modifies only the relevant section, and writes back atomically, preserving all other fields.
 
