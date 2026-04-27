@@ -13,14 +13,20 @@ Instead of manually editing multiple config files with different formats, use `m
 ## Install
 
 ```bash
+npm install -g @itzfaisal/mcp-cli
+```
+
+The `mcp` command is now available globally.
+
+### Install from source
+
+```bash
 git clone <repo-url> mcp-cli
 cd mcp-cli
 npm install
 npm run build
 npm link
 ```
-
-After `npm link`, the `mcp` command is available globally.
 
 ## Usage
 

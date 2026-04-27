@@ -1,5 +1,11 @@
 # AGENTS.md
 
+## Package
+
+- Published as **`@itzfaisal/mcp-cli`** on npm
+- Install: `npm install -g @itzfaisal/mcp-cli`
+- Binary: `mcp`
+
 ## Commands
 
 - `npm run build` — compile TS (`tsc`), output to `dist/`
@@ -7,6 +13,7 @@
 - `npm run test:watch` — watch mode
 - `npm run test:coverage` — coverage report (v8)
 - `npm run dev` — watch-mode TS compilation
+- `npm publish --access public` — publish to npm (requires auth)
 
 Always build before testing CLI integration tests: `npm run build && npm test`.
 
