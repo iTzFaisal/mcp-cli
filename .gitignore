@@ -26,6 +26,3 @@ npm-debug.log*
 # Project-level MCP configs (user-specific)
 .mcp.json
 opencode.json
-
-cline_mcp_example.json
-cline_path.md
