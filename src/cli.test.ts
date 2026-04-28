@@ -14,6 +14,17 @@ describe("CLI integration tests", () => {
   const projectDir = path.join(tmpDir, "project");
   const claudeProjectFile = path.join(projectDir, ".mcp.json");
   const opencodeProjectFile = path.join(projectDir, "opencode.json");
+  const clineDir = path.join(
+    tmpDir,
+    "Library",
+    "Application Support",
+    "Code",
+    "User",
+    "globalStorage",
+    "saoudrizwan.claude-dev",
+    "settings"
+  );
+  const clineFile = path.join(clineDir, "cline_mcp_settings.json");
 
   const cliWithHome = (args: string, expectError = false) => {
     return execSync(`node ${BIN} ${args}`, {
@@ -34,10 +45,18 @@ describe("CLI integration tests", () => {
     }
   };
 
+  const compact = (value: string) =>
+    value
+      .replace(/\x1B\[[0-9;?]*[ -/]*[@-~]/g, "")
+      .replace(/[│◇◆●└┌┐┘├┤╭╮╯╰─]/g, "")
+      .replace(/\s+/g, "")
+      .trim();
+
   beforeEach(() => {
     fs.rmSync(tmpDir, { recursive: true, force: true });
     fs.mkdirSync(tmpDir, { recursive: true });
     fs.mkdirSync(opencodeDir, { recursive: true });
+    fs.mkdirSync(clineDir, { recursive: true });
     fs.mkdirSync(projectDir, { recursive: true });
     fs.mkdirSync(path.join(projectDir, ".git"), { recursive: true });
 
@@ -45,6 +64,7 @@ describe("CLI integration tests", () => {
     fs.writeFileSync(opencodeFile, JSON.stringify({ mcp: {} }));
     fs.writeFileSync(claudeProjectFile, JSON.stringify({ mcpServers: {} }));
     fs.writeFileSync(opencodeProjectFile, JSON.stringify({ mcp: {} }));
+    fs.writeFileSync(clineFile, JSON.stringify({ mcpServers: {} }));
   });
 
   afterEach(() => {
@@ -58,6 +78,7 @@ describe("CLI integration tests", () => {
       expect(output).toContain("list");
       expect(output).toContain("add");
       expect(output).toContain("rm");
+      expect(output).toContain("compare");
     });
 
     it("shows version with --version", () => {
@@ -308,5 +329,54 @@ describe("CLI integration tests", () => {
       const output = cliExpectError("rm nonexistent -t claude -s user -y");
       expect(output).toContain("not found");
     });
+  });
+
+  describe("compare command", () => {
+    it("shows configured and missing locations for direct usage", () => {
+      fs.writeFileSync(
+        claudeFile,
+        JSON.stringify({
+          mcpServers: {
+            "brave-search": { command: "npx", args: ["-y", "brave-search"] },
+          },
+        })
+      );
+      fs.writeFileSync(
+        opencodeProjectFile,
+        JSON.stringify({
+          mcp: {
+            "brave-search": {
+              type: "local",
+              command: ["npx", "-y", "brave-search"],
+              enabled: true,
+            },
+          },
+        })
+      );
+
+      const output = cliWithHome("compare brave-search");
+      expect(compact(output)).toContain(compact("Claude Code (user)"));
+      expect(compact(output)).toContain(compact("OpenCode (project)"));
+      expect(compact(output)).toContain(compact("OpenCode (user)"));
+      expect(compact(output)).toContain(compact("Cline (user)"));
+      expect(compact(output)).not.toContain(compact("Cline (project)"));
+      expect(compact(output)).toContain(
+        compact(
+          "mcps copy brave-search --from-tool claude --from-scope user --tool opencode --scope user"
+        )
+      );
+    });
+
+    it("reports missing-everywhere without copy hints", () => {
+      const output = cliWithHome("compare nonexistent-server");
+      expect(compact(output)).toContain(compact("Claude Code (user)"));
+      expect(compact(output)).toContain(compact("OpenCode (project)"));
+      expect(compact(output)).toContain(
+        compact(
+          "No copy hints available until this server is configured in at least one supported location"
+        )
+      );
+    });
+
   });
 });
