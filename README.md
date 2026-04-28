@@ -106,6 +106,19 @@ Options:
 | `--from-scope <scope>` | Source scope (disambiguate when server exists in multiple) |
 | `-f, --force`          | Overwrite if server already exists at destination          |
 
+### Compare a server
+
+```bash
+mcps compare brave-search             # show where it is already configured
+mcps compare                          # interactive selection in a TTY
+```
+
+`compare` checks the supported locations for one MCP server across Claude Code, OpenCode, and Cline, then shows:
+
+- where the server is already configured
+- which supported tool/scope locations are still missing
+- ready-to-run `mcps copy ...` commands to fill in the missing locations
+
 ### Remove a server
 
 ```bash
@@ -156,6 +169,7 @@ src/
 │   ├── add.ts            # `mcps add`
 │   ├── copy.ts           # `mcps copy` / `mcps cp`
 │   ├── move.ts           # `mcps move` / `mcps mv`
+│   ├── compare.ts        # `mcps compare`
 │   └── remove.ts         # `mcps rm` / `mcps remove`
 ├── config/
 │   ├── paths.ts          # Resolves config file paths per tool/scope
