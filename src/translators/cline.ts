@@ -6,6 +6,7 @@ export interface ClineServer {
   env?: Record<string, string>;
   type?: string;
   url?: string;
+  headers?: Record<string, string>;
   disabled?: boolean;
   timeout?: number;
   autoApprove?: string[];
@@ -17,7 +18,7 @@ export function fromCline(name: string, raw: ClineServer): McpServer {
       name,
       transport: "http",
       url: raw.url,
-      headers: undefined,
+      headers: raw.headers,
       disabled: raw.disabled,
     };
   }
@@ -43,6 +44,9 @@ export function toCline(server: McpServer): ClineServer {
       disabled: server.disabled ?? false,
       timeout: 60,
     };
+    if (server.headers && Object.keys(server.headers).length > 0) {
+      out.headers = server.headers;
+    }
     return out;
   }
 

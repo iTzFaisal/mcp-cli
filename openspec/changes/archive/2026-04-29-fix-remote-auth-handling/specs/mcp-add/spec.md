@@ -1,4 +1,4 @@
-## ADDED Requirements
+## MODIFIED Requirements
 
 ### Requirement: Interactive MCP server addition
 The system SHALL provide an interactive wizard to add an MCP server, prompting for tool selection, scope, transport type, and transport-specific configuration. Tool options SHALL be "Claude Code", "OpenCode", "Cline", and "All".

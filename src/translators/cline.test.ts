@@ -53,6 +53,16 @@ describe("fromCline", () => {
     });
   });
 
+  it("parses streamableHttp server with headers", () => {
+    const result = fromCline("myserver", {
+      url: "https://mcp.example.com",
+      type: "streamableHttp",
+      headers: { Authorization: "Bearer API_KEY" },
+      disabled: false,
+    });
+    expect(result.headers).toEqual({ Authorization: "Bearer API_KEY" });
+  });
+
   it("parses sse server", () => {
     const result = fromCline("myserver", {
       url: "https://mcp.example.com/sse",
@@ -125,6 +135,22 @@ describe("toCline", () => {
     expect(result).toEqual({
       url: "https://mcp.example.com",
       type: "streamableHttp",
+      disabled: false,
+      timeout: 60,
+    });
+  });
+
+  it("converts http server with headers", () => {
+    const result = toCline({
+      name: "myserver",
+      transport: "http",
+      url: "https://mcp.example.com",
+      headers: { Authorization: "Bearer API_KEY" },
+    });
+    expect(result).toEqual({
+      url: "https://mcp.example.com",
+      type: "streamableHttp",
+      headers: { Authorization: "Bearer API_KEY" },
       disabled: false,
       timeout: 60,
     });

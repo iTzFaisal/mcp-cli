@@ -14,6 +14,17 @@ describe("copy command", () => {
   const projectDir = path.join(tmpDir, "project");
   const claudeProjectFile = path.join(projectDir, ".mcp.json");
   const opencodeProjectFile = path.join(projectDir, "opencode.json");
+  const clineDir = path.join(
+    tmpDir,
+    "Library",
+    "Application Support",
+    "Code",
+    "User",
+    "globalStorage",
+    "saoudrizwan.claude-dev",
+    "settings"
+  );
+  const clineFile = path.join(clineDir, "cline_mcp_settings.json");
 
   const runCli = (args: string) => {
     try {
@@ -34,6 +45,7 @@ describe("copy command", () => {
     fs.rmSync(tmpDir, { recursive: true, force: true });
     fs.mkdirSync(tmpDir, { recursive: true });
     fs.mkdirSync(opencodeDir, { recursive: true });
+    fs.mkdirSync(clineDir, { recursive: true });
     fs.mkdirSync(projectDir, { recursive: true });
     fs.mkdirSync(path.join(projectDir, ".git"), { recursive: true });
 
@@ -41,6 +53,7 @@ describe("copy command", () => {
     fs.writeFileSync(opencodeFile, JSON.stringify({ mcp: {} }));
     fs.writeFileSync(claudeProjectFile, JSON.stringify({ mcpServers: {} }));
     fs.writeFileSync(opencodeProjectFile, JSON.stringify({ mcp: {} }));
+    fs.writeFileSync(clineFile, JSON.stringify({ mcpServers: {} }));
   });
 
   afterEach(() => {
@@ -231,6 +244,62 @@ describe("copy command", () => {
 
       const data = JSON.parse(fs.readFileSync(opencodeFile, "utf-8"));
       expect(data.mcp["my-server"].command).toEqual(["npx", "-y", "server"]);
+    });
+
+    it("copies authenticated remote server from cline to claude", () => {
+      fs.writeFileSync(
+        clineFile,
+        JSON.stringify({
+          mcpServers: {
+            "api-server": {
+              type: "streamableHttp",
+              url: "https://mcp.example.com",
+              headers: { Authorization: "Bearer API_KEY" },
+              disabled: false,
+            },
+          },
+        })
+      );
+
+      runCli(
+        "copy api-server --from-tool cline --from-scope user --tool claude --scope user"
+      );
+
+      const data = JSON.parse(fs.readFileSync(claudeFile, "utf-8"));
+      expect(data.mcpServers["api-server"]).toEqual({
+        type: "http",
+        url: "https://mcp.example.com",
+        headers: { Authorization: "Bearer API_KEY" },
+      });
+    });
+
+    it("copies authenticated remote server from opencode to cline", () => {
+      fs.writeFileSync(
+        opencodeFile,
+        JSON.stringify({
+          mcp: {
+            "api-server": {
+              type: "remote",
+              url: "https://mcp.example.com",
+              headers: { Authorization: "Bearer API_KEY" },
+              enabled: true,
+            },
+          },
+        })
+      );
+
+      runCli(
+        "copy api-server --from-tool opencode --from-scope user --tool cline --scope user"
+      );
+
+      const data = JSON.parse(fs.readFileSync(clineFile, "utf-8"));
+      expect(data.mcpServers["api-server"]).toEqual({
+        type: "streamableHttp",
+        url: "https://mcp.example.com",
+        headers: { Authorization: "Bearer API_KEY" },
+        disabled: false,
+        timeout: 60,
+      });
     });
   });
 

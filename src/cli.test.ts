@@ -100,6 +100,8 @@ describe("CLI integration tests", () => {
       });
       expect(output).toContain("--transport");
       expect(output).toContain("--command");
+      expect(output).toContain("--header");
+      expect(output).toContain("Authorization=Bearer API_KEY,OTHER=val");
     });
 
     it("rm command shows help examples", () => {
@@ -231,6 +233,63 @@ describe("CLI integration tests", () => {
       });
     });
 
+    it("adds authenticated http server to all tools and preserves unrelated fields", () => {
+      fs.writeFileSync(
+        claudeFile,
+        JSON.stringify({ existingField: "keep-claude", mcpServers: {} })
+      );
+      fs.writeFileSync(
+        opencodeFile,
+        JSON.stringify({ existingField: "keep-opencode", mcp: {} })
+      );
+      fs.writeFileSync(
+        clineFile,
+        JSON.stringify({ existingField: "keep-cline", mcpServers: {} })
+      );
+
+      cliWithHome(
+        'add notion -t all -s user --transport http --url "https://mcp.notion.com/mcp" --header "Authorization=Bearer API_KEY" --header "OTHER=val"'
+      );
+
+      const claudeData = JSON.parse(fs.readFileSync(claudeFile, "utf-8"));
+      const opencodeData = JSON.parse(fs.readFileSync(opencodeFile, "utf-8"));
+      const clineData = JSON.parse(fs.readFileSync(clineFile, "utf-8"));
+
+      expect(claudeData.existingField).toBe("keep-claude");
+      expect(claudeData.mcpServers.notion).toEqual({
+        type: "http",
+        url: "https://mcp.notion.com/mcp",
+        headers: {
+          Authorization: "Bearer API_KEY",
+          OTHER: "val",
+        },
+      });
+
+      expect(opencodeData.existingField).toBe("keep-opencode");
+      expect(opencodeData.mcp.notion).toEqual({
+        type: "remote",
+        url: "https://mcp.notion.com/mcp",
+        headers: {
+          Authorization: "Bearer API_KEY",
+          OTHER: "val",
+        },
+        enabled: true,
+        timeout: 60000,
+      });
+
+      expect(clineData.existingField).toBe("keep-cline");
+      expect(clineData.mcpServers.notion).toEqual({
+        type: "streamableHttp",
+        url: "https://mcp.notion.com/mcp",
+        headers: {
+          Authorization: "Bearer API_KEY",
+          OTHER: "val",
+        },
+        disabled: false,
+        timeout: 60,
+      });
+    });
+
     it("adds server with env vars", () => {
       cliWithHome(
         'add env-srv -t claude -s user --transport stdio --command "node server.js" -e KEY=value OTHER=test'
@@ -268,6 +327,20 @@ describe("CLI integration tests", () => {
         "add nope -t claude -s user --transport http"
       );
       expect(output).toContain("--url is required");
+    });
+
+    it("errors when --env is used with http", () => {
+      const output = cliExpectError(
+        'add nope -t claude -s user --transport http --url "https://mcp.example.com" -e KEY=value'
+      );
+      expect(output).toContain("--env can only be used with stdio transport");
+    });
+
+    it("errors when --header is used with stdio", () => {
+      const output = cliExpectError(
+        'add nope -t claude -s user --transport stdio --command "node server.js" --header "Authorization=Bearer API_KEY"'
+      );
+      expect(output).toContain("--header can only be used with http transport");
     });
 
     it("errors for invalid tool", () => {

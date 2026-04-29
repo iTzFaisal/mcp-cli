@@ -10,6 +10,8 @@ describe("writeServer and removeServer", () => {
   const claudeFile = path.join(tmpDir, "claude.json");
   const opencodeDir = path.join(tmpDir, "config", "opencode");
   const opencodeFile = path.join(opencodeDir, "opencode.json");
+  const clineDir = path.join(tmpDir, "config", "cline");
+  const clineFile = path.join(clineDir, "cline_mcp_settings.json");
 
   const stdioServer: McpServer = {
     name: "test-server",
@@ -31,6 +33,7 @@ describe("writeServer and removeServer", () => {
     fs.rmSync(tmpDir, { recursive: true, force: true });
     fs.mkdirSync(tmpDir, { recursive: true });
     fs.mkdirSync(opencodeDir, { recursive: true });
+    fs.mkdirSync(clineDir, { recursive: true });
 
     configPathSpy = vi.spyOn(pathsModule, "configPath");
   });
@@ -50,6 +53,10 @@ describe("writeServer and removeServer", () => {
 
   function mockCustomPath(p: string) {
     configPathSpy.mockReturnValue(p);
+  }
+
+  function mockClinePath() {
+    configPathSpy.mockReturnValue(clineFile);
   }
 
   describe("writeServer", () => {
@@ -102,6 +109,64 @@ describe("writeServer and removeServer", () => {
       const data = JSON.parse(fs.readFileSync(claudeFile, "utf-8"));
       expect(data.existingField).toBe("preserve-me");
       expect(data.mcpServers["test-server"]).toBeDefined();
+    });
+
+    it("preserves existing fields when writing http server to claude", () => {
+      fs.writeFileSync(
+        claudeFile,
+        JSON.stringify({ existingField: "preserve-me", mcpServers: {} })
+      );
+      mockClaudePath();
+
+      writeServer(httpServer, "claude", "user");
+
+      const data = JSON.parse(fs.readFileSync(claudeFile, "utf-8"));
+      expect(data.existingField).toBe("preserve-me");
+      expect(data.mcpServers["http-server"]).toEqual({
+        type: "http",
+        url: "https://mcp.example.com",
+        headers: { Authorization: "Bearer token" },
+      });
+    });
+
+    it("preserves existing fields when writing http server to opencode", () => {
+      fs.writeFileSync(
+        opencodeFile,
+        JSON.stringify({ existingField: "preserve-me", mcp: {} })
+      );
+      mockOpencodePath();
+
+      writeServer(httpServer, "opencode", "user");
+
+      const data = JSON.parse(fs.readFileSync(opencodeFile, "utf-8"));
+      expect(data.existingField).toBe("preserve-me");
+      expect(data.mcp["http-server"]).toEqual({
+        type: "remote",
+        url: "https://mcp.example.com",
+        headers: { Authorization: "Bearer token" },
+        enabled: true,
+        timeout: 60000,
+      });
+    });
+
+    it("preserves existing fields when writing http server to cline", () => {
+      fs.writeFileSync(
+        clineFile,
+        JSON.stringify({ existingField: "preserve-me", mcpServers: {} })
+      );
+      mockClinePath();
+
+      writeServer(httpServer, "cline", "user");
+
+      const data = JSON.parse(fs.readFileSync(clineFile, "utf-8"));
+      expect(data.existingField).toBe("preserve-me");
+      expect(data.mcpServers["http-server"]).toEqual({
+        type: "streamableHttp",
+        url: "https://mcp.example.com",
+        headers: { Authorization: "Bearer token" },
+        disabled: false,
+        timeout: 60,
+      });
     });
 
     it("overwrites existing server", () => {
