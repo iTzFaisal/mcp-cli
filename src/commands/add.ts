@@ -5,6 +5,8 @@ import { readServers } from "../config/reader.js";
 import { writeServer } from "../config/writer.js";
 import type { McpServer, Scope, Tool, Transport } from "../types.js";
 
+const ALL_TOOLS: Tool[] = ["claude", "opencode", "cline"];
+
 export const addCommand = new Command("add")
   .description("Add an MCP server to one or more tools")
   .argument("<name>", "Server name")
@@ -36,7 +38,7 @@ Examples:
   .action(async (name: string, opts: AddOpts) => {
     const isNonInteractive = opts.tool && opts.scope && opts.transport;
 
-    let tool: Tool | "all";
+    let tools: Tool[];
     let scope: Scope;
     let transport: Transport;
     let command: string[] | undefined;
@@ -45,7 +47,7 @@ Examples:
     let headers: Record<string, string> | undefined;
 
     if (isNonInteractive) {
-      tool = opts.tool as Tool | "all";
+      const tool = opts.tool as Tool | "all";
       scope = opts.scope as Scope;
       transport = opts.transport as Transport;
 
@@ -66,6 +68,7 @@ Examples:
         );
         return;
       }
+      tools = tool === "all" ? ALL_TOOLS : [tool];
       if (scope !== "user" && scope !== "project") {
         clack.log.error(`Invalid scope "${opts.scope}". Use user or project.`);
         return;
@@ -107,17 +110,9 @@ Examples:
     } else {
       clack.intro(pc.bgCyan(pc.black(` Add MCP Server: ${name} `)));
 
-      const toolResult = await clack.select({
-        message: "Which tool(s)?",
-        options: [
-          { value: "claude", label: "Claude Code" },
-          { value: "opencode", label: "OpenCode" },
-          { value: "cline", label: "Cline" },
-          { value: "all", label: "All" },
-        ],
-      });
+      const toolResult = await promptForTools();
       if (clack.isCancel(toolResult)) return;
-      tool = toolResult as Tool | "all";
+      tools = toolResult as Tool[];
 
       const scopeResult = await clack.select({
         message: "Which scope?",
@@ -186,31 +181,25 @@ Examples:
       ...(headers && { headers }),
     };
 
-    const tools: (Tool | "all")[] = [tool];
-
-    for (const t of tools) {
-      const targets: Tool[] =
-        t === "all" ? ["claude", "opencode", "cline"] : [t as Tool];
-      for (const target of targets) {
-        if (target === "cline" && scope === "project") {
-          clack.log.warn("Cline only supports user scope. Skipping.");
+    for (const target of tools) {
+      if (target === "cline" && scope === "project") {
+        clack.log.warn("Cline only supports user scope. Skipping.");
+        continue;
+      }
+      const existing = readServers(target, scope).find(
+        (s) => s.server.name === name,
+      );
+      if (existing) {
+        const overwrite = await confirmOverwrite(name, target, scope);
+        if (!overwrite) {
+          clack.log.info(
+            `Skipped ${target}/${scope} — server "${name}" already exists.`,
+          );
           continue;
         }
-        const existing = readServers(target, scope).find(
-          (s) => s.server.name === name,
-        );
-        if (existing) {
-          const overwrite = await confirmOverwrite(name, target, scope);
-          if (!overwrite) {
-            clack.log.info(
-              `Skipped ${target}/${scope} — server "${name}" already exists.`,
-            );
-            continue;
-          }
-        }
-        writeServer(server, target, scope);
-        clack.log.success(`Added "${name}" to ${target} (${scope})`);
       }
+      writeServer(server, target, scope);
+      clack.log.success(`Added "${name}" to ${target} (${scope})`);
     }
 
     clack.outro(pc.green("Done!"));
@@ -252,6 +241,20 @@ function parsePairs(pairs: string[]): Record<string, string> {
 
 function collectOption(value: string, previous: string[]): string[] {
   return [...previous, value];
+}
+
+async function promptForTools(): Promise<Tool[] | symbol> {
+  return clack.multiselect({
+    message:
+      "Which tool(s)? Press Space to toggle, A to select or deselect all, Enter to submit.",
+    required: true,
+    cursorAt: ALL_TOOLS[0],
+    options: [
+      { value: "claude", label: "Claude Code" },
+      { value: "opencode", label: "OpenCode" },
+      { value: "cline", label: "Cline" },
+    ],
+  }) as Promise<Tool[] | symbol>;
 }
 
 interface AddOpts {
