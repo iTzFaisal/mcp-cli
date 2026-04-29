@@ -11,14 +11,17 @@ export const addCommand = new Command("add")
   .option("-t, --tool <tool>", "Tool: claude | opencode | cline | all")
   .option("-s, --scope <scope>", "Scope: user | project")
   .option("--transport <type>", "Transport: stdio | http")
-  .option("--command <cmd>", 'Command (stdio transport), e.g. "npx -y my-server"')
+  .option(
+    "--command <cmd>",
+    'Command (stdio transport), e.g. "npx -y my-server"',
+  )
   .option("--url <url>", "URL (http transport)")
   .option("-e, --env <pairs...>", "Environment variables (KEY=VALUE)")
   .option(
     "--header <pair>",
-    'HTTP header (KEY=VALUE); repeat as needed, e.g. "Authorization=Bearer API_KEY"',
+    "HTTP header (KEY=VALUE)",
     collectOption,
-    [] as string[]
+    [] as string[],
   )
   .addHelpText(
     "after",
@@ -28,7 +31,7 @@ Examples:
   $ mcps add myserver -t claude -s user --transport stdio --command "npx -y my-server"
   $ mcps add notion -t all -s user --transport http --url "https://mcp.notion.com/mcp" --header "Authorization=Bearer API_KEY" --header "OTHER=val"
   $ mcps add notion                               # interactive http headers placeholder: Authorization=Bearer API_KEY,OTHER=val
-  $ mcps add myserver -t opencode -s project --transport stdio --command "node server.js" -e KEY=val`
+  $ mcps add myserver -t opencode -s project --transport stdio --command "node server.js" -e KEY=val`,
   )
   .action(async (name: string, opts: AddOpts) => {
     const isNonInteractive = opts.tool && opts.scope && opts.transport;
@@ -47,11 +50,20 @@ Examples:
       transport = opts.transport as Transport;
 
       if (opts.tool === "both") {
-        clack.log.error(`"both" is not supported. Use "all" for all tools, or specify claude, opencode, or cline.`);
+        clack.log.error(
+          `"both" is not supported. Use "all" for all tools, or specify claude, opencode, or cline.`,
+        );
         return;
       }
-      if (tool !== "claude" && tool !== "opencode" && tool !== "cline" && tool !== "all") {
-        clack.log.error(`Invalid tool "${opts.tool}". Use claude, opencode, cline, or all.`);
+      if (
+        tool !== "claude" &&
+        tool !== "opencode" &&
+        tool !== "cline" &&
+        tool !== "all"
+      ) {
+        clack.log.error(
+          `Invalid tool "${opts.tool}". Use claude, opencode, cline, or all.`,
+        );
         return;
       }
       if (scope !== "user" && scope !== "project") {
@@ -59,7 +71,9 @@ Examples:
         return;
       }
       if (transport !== "stdio" && transport !== "http") {
-        clack.log.error(`Invalid transport "${opts.transport}". Use stdio or http.`);
+        clack.log.error(
+          `Invalid transport "${opts.transport}". Use stdio or http.`,
+        );
         return;
       }
 
@@ -134,7 +148,8 @@ Examples:
         command = splitCommand(cmdResult as string);
 
         const envResult = await clack.text({
-          message: "Environment variables (KEY=VALUE, comma-separated, or leave empty):",
+          message:
+            "Environment variables (KEY=VALUE, comma-separated, or leave empty):",
           placeholder: "API_KEY=xxx,OTHER=val",
         });
         if (clack.isCancel(envResult)) return;
@@ -174,19 +189,22 @@ Examples:
     const tools: (Tool | "all")[] = [tool];
 
     for (const t of tools) {
-      const targets: Tool[] = t === "all" ? ["claude", "opencode", "cline"] : [t as Tool];
+      const targets: Tool[] =
+        t === "all" ? ["claude", "opencode", "cline"] : [t as Tool];
       for (const target of targets) {
         if (target === "cline" && scope === "project") {
           clack.log.warn("Cline only supports user scope. Skipping.");
           continue;
         }
         const existing = readServers(target, scope).find(
-          (s) => s.server.name === name
+          (s) => s.server.name === name,
         );
         if (existing) {
           const overwrite = await confirmOverwrite(name, target, scope);
           if (!overwrite) {
-            clack.log.info(`Skipped ${target}/${scope} — server "${name}" already exists.`);
+            clack.log.info(
+              `Skipped ${target}/${scope} — server "${name}" already exists.`,
+            );
             continue;
           }
         }
@@ -201,7 +219,7 @@ Examples:
 async function confirmOverwrite(
   name: string,
   tool: Tool,
-  scope: Scope
+  scope: Scope,
 ): Promise<boolean> {
   const result = await clack.confirm({
     message: `Server "${name}" already exists in ${tool} (${scope}). Overwrite?`,
