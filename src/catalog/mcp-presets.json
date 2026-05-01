@@ -1,0 +1,573 @@
+{
+  "mcpServers": {
+    "adisinsight": {
+      "type": "http",
+      "url": "https://adisinsight-mcp.springer.com/mcp"
+    },
+    "ai-circleback-app-circleback": {
+      "type": "http",
+      "url": "https://app.circleback.ai/api/mcp"
+    },
+    "ai-day-day-ai": {
+      "type": "http",
+      "url": "https://day.ai/api/mcp"
+    },
+    "ai-deepsense-mcp-icd-10-codes": {
+      "type": "http",
+      "url": "https://hcls.mcp.claude.com/icd10_codes/mcp"
+    },
+    "ai-devrev-api-devrev": {
+      "type": "http",
+      "url": "https://api.devrev.ai/mcp/v1"
+    },
+    "ai-harmonic-mcp-api-harmonic": {
+      "type": "http",
+      "url": "https://mcp.api.harmonic.ai"
+    },
+    "ai-lunarcrush-lunarcrush": {
+      "type": "http",
+      "url": "https://lunarcrush.ai/mcp"
+    },
+    "ai-vibeprospecting-vibeprospecting": {
+      "type": "http",
+      "url": "https://vibeprospecting.explorium.ai/mcp"
+    },
+    "ai-windsor-mcp-windsor-ai": {
+      "type": "http",
+      "url": "https://mcp.windsor.ai"
+    },
+    "airwallex-developer": {
+      "type": "http",
+      "url": "https://mcp-demo.airwallex.com/developer"
+    },
+    "airtable": {
+      "args": [
+        "-y",
+        "airtable-mcp-server"
+      ],
+      "command": "npx",
+      "env": {
+        "AIRTABLE_API_KEY": "YOUR_AIRTABLE_API_KEY"
+      }
+    },
+    "aiwyn-tax": {
+      "type": "http",
+      "url": "https://mcp.columnapi.com/mcp"
+    },
+    "amplitude": {
+      "type": "http",
+      "url": "https://mcp.amplitude.com/mcp"
+    },
+    "app-gamma-mcp-gamma": {
+      "type": "http",
+      "url": "https://mcp.gamma.app/mcp"
+    },
+    "asana": {
+      "type": "http",
+      "url": "https://mcp.asana.com/v2/mcp"
+    },
+    "atlassian": {
+      "type": "http",
+      "url": "https://mcp.atlassian.com/v1/mcp"
+    },
+    "attio": {
+      "type": "http",
+      "url": "https://mcp.attio.com/mcp"
+    },
+    "aura": {
+      "type": "http",
+      "url": "https://mcp.auraintelligence.com/mcp"
+    },
+    "aws-api-us-east-1-marketplace-mcp-aws-marketplace": {
+      "type": "http",
+      "url": "https://marketplace-mcp.us-east-1.api.aws/mcp"
+    },
+    "bigquery": {
+      "type": "http",
+      "url": "https://bigquery.googleapis.com/mcp"
+    },
+    "biorender": {
+      "type": "http",
+      "url": "https://mcp.services.biorender.com/mcp"
+    },
+    "biorxiv": {
+      "type": "http",
+      "url": "https://hcls.mcp.claude.com/biorxiv/mcp"
+    },
+    "box": {
+      "type": "http",
+      "url": "https://mcp.box.com"
+    },
+    "canva": {
+      "type": "http",
+      "url": "https://mcp.canva.com/mcp"
+    },
+    "cb-insights": {
+      "type": "http",
+      "url": "https://mcp.cbinsights.com"
+    },
+    "chembl": {
+      "type": "http",
+      "url": "https://hcls.mcp.claude.com/chembl/mcp"
+    },
+    "chronograph": {
+      "type": "http",
+      "url": "https://ai.chronograph.pe/mcp"
+    },
+    "clarify": {
+      "type": "http",
+      "url": "https://api.clarify.ai/mcp"
+    },
+    "clarity-ai": {
+      "type": "http",
+      "url": "https://clarity-sfdr20-mcp.pro.clarity.ai/mcp"
+    },
+    "clay": {
+      "type": "http",
+      "url": "https://api.clay.com/v3/mcp"
+    },
+    "clerk": {
+      "type": "http",
+      "url": "https://mcp.clerk.com/mcp"
+    },
+    "clinical-trials": {
+      "type": "http",
+      "url": "https://hcls.mcp.claude.com/clinical_trials/mcp"
+    },
+    "cloudflare": {
+      "type": "http",
+      "url": "https://bindings.mcp.cloudflare.com/mcp"
+    },
+    "cms-coverage": {
+      "type": "http",
+      "url": "https://hcls.mcp.claude.com/cms_coverage/mcp"
+    },
+    "com-ahrefs-api-ahrefs": {
+      "type": "http",
+      "url": "https://api.ahrefs.com/mcp/mcp"
+    },
+    "com-airops-app-airops": {
+      "type": "http",
+      "url": "https://app.airops.com/mcp"
+    },
+    "com-bitly-api-ssl-bitly": {
+      "type": "http",
+      "url": "https://api-ssl.bitly.com/v4/mcp"
+    },
+    "com-blockscout-mcp-server": {
+      "type": "http",
+      "url": "https://mcp.blockscout.com/mcp"
+    },
+    "com-cdata-cloud-mcp-cdata-connect-ai": {
+      "type": "http",
+      "url": "https://mcp.cloud.cdata.com/mcp"
+    },
+    "com-claude-mcp-microsoft365-microsoft-365": {
+      "type": "http",
+      "url": "https://microsoft365.mcp.claude.com/mcp"
+    },
+    "com-clickup-mcp-clickup": {
+      "type": "http",
+      "url": "https://mcp.clickup.com/mcp"
+    },
+    "com-crossbeam-mcp-crossbeam": {
+      "type": "http",
+      "url": "https://mcp.crossbeam.com"
+    },
+    "com-getguru-mcp-server": {
+      "type": "http",
+      "url": "https://mcp.api.getguru.com/mcp"
+    },
+    "com-imedidata-mcp-medidata": {
+      "type": "http",
+      "url": "https://mcp.imedidata.com/mcp"
+    },
+    "com-kakao-playmcp-playmcp": {
+      "type": "http",
+      "url": "https://playmcp.kakao.com/mcp"
+    },
+    "com-klaviyo-mcp-klaviyo": {
+      "type": "http",
+      "url": "https://mcp.klaviyo.com/mcp?include-mcp-app=true"
+    },
+    "com-lastminute-mcp-lastminute-com": {
+      "type": "http",
+      "url": "https://mcp.lastminute.com/mcp"
+    },
+    "com-melon-mcp-melon": {
+      "type": "http",
+      "url": "https://mcp.melon.com/mcp/"
+    },
+    "com-mercury-mcp-mercury": {
+      "type": "http",
+      "url": "https://mcp.mercury.com/mcp"
+    },
+    "com-motherduck-api-motherduck": {
+      "type": "http",
+      "url": "https://api.motherduck.com/mcp"
+    },
+    "com-owkin-k-mcp-owkin": {
+      "type": "http",
+      "url": "https://mcp.k.owkin.com/mcp"
+    },
+    "com-slack-mcp-slack": {
+      "type": "http",
+      "url": "https://mcp.slack.com/mcp"
+    },
+    "com-udemy-api-udemy-business": {
+      "type": "http",
+      "url": "https://api.udemy.com/mcp"
+    },
+    "com-wix-mcp": {
+      "type": "http",
+      "url": "https://mcp.wix.com/mcp"
+    },
+    "com-wordpress-public-api-wordpress-com": {
+      "type": "http",
+      "url": "https://public-api.wordpress.com/wpcom/v2/mcp/v1"
+    },
+    "com-zapier-zapier": {
+      "type": "http",
+      "url": "https://mcp.zapier.com/api/v1/connect"
+    },
+    "consensus": {
+      "type": "http",
+      "url": "https://mcp.consensus.app/mcp"
+    },
+    "context7": {
+      "type": "http",
+      "url": "https://mcp.context7.com/mcp"
+    },
+    "coupler-io": {
+      "type": "http",
+      "url": "https://mcp.coupler.io/mcp/"
+    },
+    "craft": {
+      "type": "http",
+      "url": "https://mcp.craft.do/my/mcp"
+    },
+    "crypto-com": {
+      "type": "http",
+      "url": "https://mcp.crypto.com/market-data/mcp"
+    },
+    "egnyte": {
+      "type": "http",
+      "url": "https://mcp-server.egnyte.com/mcp"
+    },
+    "enterpret-wisdom": {
+      "type": "http",
+      "url": "https://wisdom-api.enterpret.com/server/mcp"
+    },
+    "exa": {
+      "type": "http",
+      "url": "https://mcp.exa.ai/mcp"
+    },
+    "fever-event-discovery": {
+      "type": "http",
+      "url": "https://data-search.apigw.feverup.com/mcp"
+    },
+    "figma": {
+      "type": "http",
+      "url": "https://mcp.figma.com/mcp"
+    },
+    "gainsight-staircase-ai": {
+      "type": "http",
+      "url": "https://mcp.staircase.ai/mcp"
+    },
+    "gocardless": {
+      "type": "http",
+      "url": "https://mcp.gocardless.com"
+    },
+    "godaddy": {
+      "type": "http",
+      "url": "https://api.godaddy.com/v1/domains/mcp"
+    },
+    "granola": {
+      "type": "http",
+      "url": "https://mcp.granola.ai/mcp"
+    },
+    "granted": {
+      "type": "http",
+      "url": "https://grantedai.com/api/mcp/mcp"
+    },
+    "github": {
+      "headers": {
+        "Authorization": "Bearer YOUR_GITHUB_PAT"
+      },
+      "type": "http",
+      "url": "https://api.githubcopilot.com/mcp/"
+    },
+    "graphos-tools": {
+      "type": "http",
+      "url": "https://mcp.apollographql.com"
+    },
+    "honeycomb": {
+      "type": "http",
+      "url": "https://mcp.honeycomb.io/mcp"
+    },
+    "hugging-face": {
+      "type": "http",
+      "url": "https://huggingface.co/mcp?login&gradio=none"
+    },
+    "hubspot": {
+      "type": "http",
+      "url": "https://mcp.hubspot.com/anthropic"
+    },
+    "ifttt": {
+      "type": "http",
+      "url": "https://ifttt.com/mcp"
+    },
+    "incident-io": {
+      "type": "http",
+      "url": "https://mcp.incident.io/mcp"
+    },
+    "intercom": {
+      "type": "http",
+      "url": "https://mcp.intercom.com/mcp"
+    },
+    "io-github-diceholdingsinc-dice-mcp": {
+      "type": "http",
+      "url": "https://mcp.dice.com/mcp"
+    },
+    "jam": {
+      "type": "http",
+      "url": "https://mcp.jam.dev/mcp"
+    },
+    "jotform": {
+      "type": "http",
+      "url": "https://mcp.jotform.com/mcp-app"
+    },
+    "kindora-funder-discovery": {
+      "type": "http",
+      "url": "https://kindora-mcp.azurewebsites.net/mcp/"
+    },
+    "krisp": {
+      "type": "http",
+      "url": "https://mcp.krisp.ai/mcp"
+    },
+    "lilt": {
+      "type": "http",
+      "url": "https://mcp.lilt.com/mcp"
+    },
+    "linear": {
+      "type": "http",
+      "url": "https://mcp.linear.app/mcp"
+    },
+    "local-falcon": {
+      "type": "http",
+      "url": "https://mcp.localfalcon.com"
+    },
+    "lorikeet": {
+      "type": "http",
+      "url": "https://api.lorikeetcx.ai/v1/mcp"
+    },
+    "lucid": {
+      "type": "http",
+      "url": "https://mcp.lucid.app/mcp"
+    },
+    "lumin": {
+      "type": "http",
+      "url": "https://mcp.luminpdf.com/mcp"
+    },
+    "magic-patterns": {
+      "type": "http",
+      "url": "https://mcp.magicpatterns.com/mcp"
+    },
+    "mailerlite": {
+      "type": "http",
+      "url": "https://mcp.mailerlite.com/mcp"
+    },
+    "make": {
+      "type": "http",
+      "url": "https://mcp.make.com"
+    },
+    "mem": {
+      "type": "http",
+      "url": "https://mcp.mem.ai/mcp"
+    },
+    "metaview": {
+      "type": "http",
+      "url": "https://mcp.metaview.ai/mcp"
+    },
+    "microsoft-learn": {
+      "type": "http",
+      "url": "https://learn.microsoft.com/api/mcp"
+    },
+    "midpage": {
+      "type": "http",
+      "url": "https://app.midpage.ai/mcp"
+    },
+    "miro": {
+      "type": "http",
+      "url": "https://mcp.miro.com/"
+    },
+    "mixpanel": {
+      "type": "http",
+      "url": "https://mcp.mixpanel.com/mcp"
+    },
+    "monday": {
+      "type": "http",
+      "url": "https://mcp.monday.com/mcp"
+    },
+    "mospi": {
+      "type": "http",
+      "url": "https://mcp.mospi.gov.in/"
+    },
+    "mt-newswires": {
+      "type": "http",
+      "url": "https://vast-mcp.blueskyapi.com/mcp"
+    },
+    "netlify": {
+      "type": "http",
+      "url": "https://netlify-mcp.netlify.app/mcp"
+    },
+    "notion": {
+      "type": "http",
+      "url": "https://mcp.notion.com/mcp"
+    },
+    "npi-registry": {
+      "type": "http",
+      "url": "https://hcls.mcp.claude.com/npi_registry/mcp"
+    },
+    "omni-analytics": {
+      "type": "http",
+      "url": "https://callbacks.omniapp.co/callback/mcp"
+    },
+    "org-candid-mcp-candid": {
+      "type": "http",
+      "url": "https://mcp.candid.org/mcp"
+    },
+    "org-opentargets-platform-mcp-open-targets": {
+      "type": "http",
+      "url": "https://mcp.platform.opentargets.org/mcp"
+    },
+    "outreach": {
+      "type": "http",
+      "url": "https://api.outreach.io/mcp/"
+    },
+    "paypal": {
+      "type": "http",
+      "url": "https://mcp.paypal.com/mcp"
+    },
+    "pg-aiguide": {
+      "type": "http",
+      "url": "https://mcp.tigerdata.com/docs"
+    },
+    "planetscale": {
+      "type": "http",
+      "url": "https://mcp.pscale.dev/mcp/planetscale"
+    },
+    "posthog": {
+      "type": "http",
+      "url": "https://mcp.posthog.com/mcp"
+    },
+    "postman": {
+      "type": "http",
+      "url": "https://mcp.postman.com/minimal"
+    },
+    "pubmed": {
+      "type": "http",
+      "url": "https://pubmed.mcp.claude.com/mcp"
+    },
+    "pylon": {
+      "type": "http",
+      "url": "https://mcp.usepylon.com/"
+    },
+    "quartr": {
+      "type": "http",
+      "url": "https://mcp.quartr.com/mcp"
+    },
+    "ramp": {
+      "type": "http",
+      "url": "https://ramp-mcp-remote.ramp.com/mcp"
+    },
+    "sanity": {
+      "type": "http",
+      "url": "https://mcp.sanity.io"
+    },
+    "scholar-gateway": {
+      "type": "http",
+      "url": "https://connector.scholargateway.ai/mcp"
+    },
+    "sentry": {
+      "type": "http",
+      "url": "https://mcp.sentry.dev/mcp"
+    },
+    "similarweb": {
+      "type": "http",
+      "url": "https://mcp.similarweb.com"
+    },
+    "sprouts": {
+      "type": "http",
+      "url": "https://sprouts-mcp-server.kartikay-dhar.workers.dev"
+    },
+    "stripe": {
+      "type": "http",
+      "url": "https://mcp.stripe.com"
+    },
+    "supabase": {
+      "type": "http",
+      "url": "https://mcp.supabase.com/mcp"
+    },
+    "sybill": {
+      "type": "http",
+      "url": "https://mcp.sybill.ai/mcp"
+    },
+    "synapse-org": {
+      "type": "http",
+      "url": "https://mcp.synapse.org/mcp"
+    },
+    "tavily": {
+      "type": "http",
+      "url": "https://mcp.tavily.com/mcp"
+    },
+    "ticket-tailor": {
+      "type": "http",
+      "url": "https://mcp.tickettailor.ai/mcp"
+    },
+    "trivago": {
+      "type": "http",
+      "url": "https://mcp.trivago.com/mcp"
+    },
+    "unthread": {
+      "type": "http",
+      "url": "https://app.unthread.io/api/mcp"
+    },
+    "vercel": {
+      "type": "http",
+      "url": "https://mcp.vercel.com/"
+    },
+    "webflow": {
+      "type": "http",
+      "url": "https://mcp.webflow.com/mcp"
+    },
+    "wyndham-hotels": {
+      "type": "http",
+      "url": "https://mcp.wyndhamhotels.com/claude/mcp"
+    },
+    "zocks": {
+      "type": "http",
+      "url": "https://mcp.zocks.io/v1/mcp"
+    },
+    "zoho-books": {
+      "type": "http",
+      "url": "https://claude-zohobooks.zohomcp.com/mcp/message"
+    },
+    "zoho-crm": {
+      "type": "http",
+      "url": "https://claude-zohocrm.zohomcp.com/mcp/message"
+    },
+    "zoho-desk": {
+      "type": "http",
+      "url": "https://claude-zohodesk.zohomcp.com/mcp/message"
+    },
+    "zoho-projects": {
+      "type": "http",
+      "url": "https://claude-zohoprojects.zohomcp.com/mcp/message"
+    },
+    "zoominfo": {
+      "type": "http",
+      "url": "https://mcp.zoominfo.com/mcp"
+    }
+  }
+}

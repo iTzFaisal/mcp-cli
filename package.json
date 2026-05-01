@@ -12,7 +12,7 @@
     "dist/**/*.d.ts.map"
   ],
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && node scripts/copy-catalog.mjs",
     "dev": "tsc --watch",
     "test": "vitest run",
     "test:watch": "vitest",

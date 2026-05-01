@@ -1,7 +1,5 @@
-## Purpose
+## MODIFIED Requirements
 
-Define how `mcps add` creates MCP server entries through interactive and non-interactive flows across supported tools and scopes.
-## Requirements
 ### Requirement: Interactive MCP server addition
 The system SHALL provide an interactive wizard to add an MCP server, prompting for tool selection, scope, transport type, and transport-specific configuration. Interactive tool selection SHALL allow choosing one or more of "Claude Code", "OpenCode", and "Cline" in a single prompt. Before prompting for transport-specific configuration, the system SHALL check a bundled MCP preset catalog for an entry matching the requested server name using case-insensitive exact-name lookup. When a preset is found, the system SHALL tell the user that a configuration was found and offer three choices: use the preset as-is, edit the discovered values first, or continue with full manual entry. If the user chooses the preset as-is, the system SHALL use the preset-derived configuration as the server definition. If the user chooses manual entry, the system SHALL continue with the existing manual prompts.
 
@@ -78,4 +76,3 @@ The system SHALL prompt for different fields based on the selected transport typ
 #### Scenario: http transport prompts
 - **WHEN** user selects "http" transport during manual interactive entry
 - **THEN** system prompts for URL and optional headers using the same comma-separated `KEY=VALUE` style as `env` with placeholder `Authorization=Bearer API_KEY,OTHER=val`
-

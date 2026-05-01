@@ -1,6 +1,7 @@
 import { Command } from "commander";
 import * as clack from "@clack/prompts";
 import pc from "picocolors";
+import { findBundledPreset } from "../catalog/presets.js";
 import { readServers } from "../config/reader.js";
 import { writeServer } from "../config/writer.js";
 import type { McpServer, Scope, Tool, Transport } from "../types.js";
@@ -40,11 +41,12 @@ Examples:
 
     let tools: Tool[];
     let scope: Scope;
-    let transport: Transport;
+    let transport: Transport | undefined;
     let command: string[] | undefined;
     let url: string | undefined;
     let env: Record<string, string> | undefined;
     let headers: Record<string, string> | undefined;
+    let server: McpServer | undefined;
 
     if (isNonInteractive) {
       const tool = opts.tool as Tool | "all";
@@ -107,6 +109,15 @@ Examples:
           headers = parsePairs(opts.header);
         }
       }
+
+      server = {
+        name,
+        transport,
+        ...(command && { command }),
+        ...(url && { url }),
+        ...(env && { env }),
+        ...(headers && { headers }),
+      };
     } else {
       clack.intro(pc.bgCyan(pc.black(` Add MCP Server: ${name} `)));
 
@@ -124,62 +135,31 @@ Examples:
       if (clack.isCancel(scopeResult)) return;
       scope = scopeResult as Scope;
 
-      const transportResult = await clack.select({
-        message: "Transport type?",
-        options: [
-          { value: "stdio", label: "stdio (local command)" },
-          { value: "http", label: "http (remote URL)" },
-        ],
-      });
-      if (clack.isCancel(transportResult)) return;
-      transport = transportResult as Transport;
+      const preset = findBundledPreset(name);
+      if (preset) {
+        clack.log.info(formatPresetSummary(preset));
+        const presetAction = await promptForPresetAction(name);
+        if (!presetAction) return;
 
-      if (transport === "stdio") {
-        const cmdResult = await clack.text({
-          message: "Command to run the server:",
-          placeholder: "npx -y @example/mcp-server",
-        });
-        if (clack.isCancel(cmdResult)) return;
-        command = splitCommand(cmdResult as string);
-
-        const envResult = await clack.text({
-          message:
-            "Environment variables (KEY=VALUE, comma-separated, or leave empty):",
-          placeholder: "API_KEY=xxx,OTHER=val",
-        });
-        if (clack.isCancel(envResult)) return;
-        const envStr = (envResult as string).trim();
-        if (envStr) {
-          env = parsePairs(envStr.split(/\s*,\s*/));
+        if (presetAction === "use") {
+          server = preset;
+        } else if (presetAction === "edit") {
+          const editedServer = await promptForPresetEdits(preset);
+          if (!editedServer) return;
+          server = editedServer;
+        } else {
+          const manualServer = await promptForManualServer(name);
+          if (!manualServer) return;
+          server = manualServer;
         }
       } else {
-        const urlResult = await clack.text({
-          message: "Server URL:",
-          placeholder: "https://mcp.example.com/mcp",
-        });
-        if (clack.isCancel(urlResult)) return;
-        url = urlResult as string;
-
-        const headersResult = await clack.text({
-          message: "HTTP headers (KEY=VALUE, comma-separated, or leave empty):",
-          placeholder: "Authorization=Bearer API_KEY,OTHER=val",
-        });
-        if (clack.isCancel(headersResult)) return;
-        const headersStr = (headersResult as string).trim();
-        if (headersStr) {
-          headers = parsePairs(headersStr.split(/\s*,\s*/));
-        }
+        const manualServer = await promptForManualServer(name);
+        if (!manualServer) return;
+        server = manualServer;
       }
     }
 
-    const server: McpServer = {
-      name,
-      transport,
-      ...(command && { command }),
-      ...(url && { url }),
-      ...(env && { env }),
-      ...(headers && { headers }),
-    };
+    if (!server) return;
 
     for (const target of tools) {
       if (target === "cline" && scope === "project") {
@@ -215,6 +195,153 @@ async function confirmOverwrite(
   });
   if (clack.isCancel(result)) return false;
   return result as boolean;
+}
+
+async function promptForPresetAction(
+  name: string,
+): Promise<"use" | "edit" | "manual" | undefined> {
+  const result = await clack.select({
+    message:
+      `Found an MCP configuration for "${name}". How would you like to continue?`,
+    options: [
+      { value: "use", label: "Use preset" },
+      { value: "edit", label: "Edit preset" },
+      { value: "manual", label: "Enter manually" },
+    ],
+  });
+  if (clack.isCancel(result)) return undefined;
+  return result as "use" | "edit" | "manual";
+}
+
+async function promptForManualServer(name: string): Promise<McpServer | undefined> {
+  const transportResult = await clack.select({
+    message: "Transport type?",
+    options: [
+      { value: "stdio", label: "stdio (local command)" },
+      { value: "http", label: "http (remote URL)" },
+    ],
+  });
+  if (clack.isCancel(transportResult)) return undefined;
+
+  const transport = transportResult as Transport;
+  if (transport === "stdio") {
+    const cmdResult = await clack.text({
+      message: "Command to run the server:",
+      placeholder: "npx -y @example/mcp-server",
+    });
+    if (clack.isCancel(cmdResult)) return undefined;
+
+    const envResult = await clack.text({
+      message:
+        "Environment variables (KEY=VALUE, comma-separated, or leave empty):",
+      placeholder: "API_KEY=xxx,OTHER=val",
+    });
+    if (clack.isCancel(envResult)) return undefined;
+
+    const envStr = (envResult as string).trim();
+    return {
+      name,
+      transport,
+      command: splitCommand(cmdResult as string),
+      ...(envStr && { env: parsePairs(envStr.split(/\s*,\s*/)) }),
+    };
+  }
+
+  const urlResult = await clack.text({
+    message: "Server URL:",
+    placeholder: "https://mcp.example.com/mcp",
+  });
+  if (clack.isCancel(urlResult)) return undefined;
+
+  const headersResult = await clack.text({
+    message: "HTTP headers (KEY=VALUE, comma-separated, or leave empty):",
+    placeholder: "Authorization=Bearer API_KEY,OTHER=val",
+  });
+  if (clack.isCancel(headersResult)) return undefined;
+
+  const headersStr = (headersResult as string).trim();
+  return {
+    name,
+    transport,
+    url: urlResult as string,
+    ...(headersStr && { headers: parsePairs(headersStr.split(/\s*,\s*/)) }),
+  };
+}
+
+async function promptForPresetEdits(
+  preset: McpServer,
+): Promise<McpServer | undefined> {
+  if (preset.transport === "stdio") {
+    const cmdResult = await clack.text({
+      message: "Command to run the server:",
+      placeholder: "npx -y @example/mcp-server",
+      defaultValue: (preset.command ?? []).join(" "),
+    });
+    if (clack.isCancel(cmdResult)) return undefined;
+
+    const envResult = await clack.text({
+      message:
+        "Environment variables (KEY=VALUE, comma-separated, or leave empty):",
+      placeholder: "API_KEY=xxx,OTHER=val",
+      defaultValue: formatKeyValuePairs(preset.env, ",") ?? "",
+    });
+    if (clack.isCancel(envResult)) return undefined;
+
+    const envStr = (envResult as string).trim();
+    return {
+      name: preset.name,
+      transport: preset.transport,
+      command: splitCommand(cmdResult as string),
+      ...(envStr && { env: parsePairs(envStr.split(/\s*,\s*/)) }),
+    };
+  }
+
+  const urlResult = await clack.text({
+    message: "Server URL:",
+    placeholder: "https://mcp.example.com/mcp",
+    defaultValue: preset.url ?? "",
+  });
+  if (clack.isCancel(urlResult)) return undefined;
+
+  const headersResult = await clack.text({
+    message: "HTTP headers (KEY=VALUE, comma-separated, or leave empty):",
+    placeholder: "Authorization=Bearer API_KEY,OTHER=val",
+    defaultValue: formatKeyValuePairs(preset.headers, ",") ?? "",
+  });
+  if (clack.isCancel(headersResult)) return undefined;
+
+  const headersStr = (headersResult as string).trim();
+  return {
+    name: preset.name,
+    transport: preset.transport,
+    url: urlResult as string,
+    ...(headersStr && { headers: parsePairs(headersStr.split(/\s*,\s*/)) }),
+  };
+}
+
+function formatPresetSummary(server: McpServer): string {
+  if (server.transport === "http") {
+    const headerSummary = formatKeyValuePairs(server.headers);
+    return headerSummary
+      ? `Found preset for "${server.name}": http ${server.url} (${headerSummary})`
+      : `Found preset for "${server.name}": http ${server.url}`;
+  }
+
+  const command = (server.command ?? []).join(" ");
+  const envSummary = formatKeyValuePairs(server.env);
+  return envSummary
+    ? `Found preset for "${server.name}": stdio ${command} (${envSummary})`
+    : `Found preset for "${server.name}": stdio ${command}`;
+}
+
+function formatKeyValuePairs(
+  values: Record<string, string> | undefined,
+  separator = ", ",
+): string | undefined {
+  if (!values || Object.keys(values).length === 0) return undefined;
+  return Object.entries(values)
+    .map(([key, value]) => `${key}=${value}`)
+    .join(separator);
 }
 
 function splitCommand(input: string): string[] {
