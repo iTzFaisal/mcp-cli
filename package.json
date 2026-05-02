@@ -24,6 +24,10 @@
     "opencode",
     "cli"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/iTzFaisal/mcp-cli.git"
+  },
   "license": "MIT",
   "dependencies": {
     "@clack/prompts": "^1.2.0",
