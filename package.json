@@ -20,8 +20,13 @@
   },
   "keywords": [
     "mcp",
+    "model-context-protocol",
+    "mcp-server",
     "claude",
+    "claude-code",
     "opencode",
+    "cline",
+    "vscode",
     "cli"
   ],
   "repository": {
