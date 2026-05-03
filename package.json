@@ -9,7 +9,8 @@
   "files": [
     "dist/**/*.js",
     "dist/**/*.d.ts",
-    "dist/**/*.d.ts.map"
+    "dist/**/*.d.ts.map",
+    "dist/catalog/mcp-presets.json"
   ],
   "scripts": {
     "build": "tsc && node scripts/copy-catalog.mjs",
