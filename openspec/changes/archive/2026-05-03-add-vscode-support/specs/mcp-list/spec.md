@@ -1,8 +1,4 @@
-## Purpose
-
-Define how `mcps list` shows configured MCP servers across supported tools and supports tool and scope filtering.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: List all MCP servers across tools
 The system SHALL display all configured MCP servers from Claude Code, OpenCode, Cline, and VS Code in a single unified view.
@@ -41,14 +37,3 @@ The system SHALL allow filtering the list to a specific tool.
 #### Scenario: Filter to VS Code only
 - **WHEN** user runs `mcps list --tool vscode`
 - **THEN** system displays only servers configured in VS Code
-
-### Requirement: Filter list by scope
-The system SHALL allow filtering the list to user or project scope.
-
-#### Scenario: Filter to user scope
-- **WHEN** user runs `mcp list --scope user`
-- **THEN** system displays only servers from user-scope configs
-
-#### Scenario: Filter to project scope
-- **WHEN** user runs `mcp list --scope project`
-- **THEN** system displays only servers from project-scope configs

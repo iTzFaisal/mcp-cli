@@ -5,8 +5,10 @@ import * as fs from "fs";
 import {
   claudeUserPath,
   opencodeUserPath,
+  vscodeUserPath,
   claudeProjectPath,
   opencodeProjectPath,
+  vscodeProjectPath,
   configPath,
   detectProjectRoot,
 } from "./paths.js";
@@ -27,6 +29,39 @@ describe("opencodeUserPath", () => {
   });
 });
 
+describe("vscodeUserPath", () => {
+  const platformDescriptor = Object.getOwnPropertyDescriptor(process, "platform");
+
+  afterEach(() => {
+    if (platformDescriptor) {
+      Object.defineProperty(process, "platform", platformDescriptor);
+    }
+  });
+
+  it("returns macOS VS Code MCP path", () => {
+    Object.defineProperty(process, "platform", { value: "darwin" });
+    expect(vscodeUserPath()).toBe(
+      path.join(os.homedir(), "Library", "Application Support", "Code", "User", "mcp.json")
+    );
+  });
+
+  it("returns Linux VS Code MCP path", () => {
+    Object.defineProperty(process, "platform", { value: "linux" });
+    expect(vscodeUserPath()).toBe(
+      path.join(os.homedir(), ".config", "Code", "User", "mcp.json")
+    );
+  });
+
+  it("returns Windows VS Code MCP path", () => {
+    Object.defineProperty(process, "platform", { value: "win32" });
+    vi.stubEnv("APPDATA", "C:\\Users\\test\\AppData\\Roaming");
+    expect(vscodeUserPath()).toBe(
+      path.join("C:\\Users\\test\\AppData\\Roaming", "Code", "User", "mcp.json")
+    );
+    vi.unstubAllEnvs();
+  });
+});
+
 describe("claudeProjectPath", () => {
   it("returns .mcp.json in project root", () => {
     const result = claudeProjectPath("/tmp/myproject");
@@ -41,6 +76,13 @@ describe("opencodeProjectPath", () => {
   });
 });
 
+describe("vscodeProjectPath", () => {
+  it("returns .vscode/mcp.json in project root", () => {
+    const result = vscodeProjectPath("/tmp/myproject");
+    expect(result).toBe(path.join("/tmp/myproject", ".vscode", "mcp.json"));
+  });
+});
+
 describe("configPath", () => {
   it("returns claude user path for claude/user", () => {
     expect(configPath("claude", "user")).toBe(claudeUserPath());
@@ -48,6 +90,10 @@ describe("configPath", () => {
 
   it("returns opencode user path for opencode/user", () => {
     expect(configPath("opencode", "user")).toBe(opencodeUserPath());
+  });
+
+  it("returns vscode user path for vscode/user", () => {
+    expect(configPath("vscode", "user")).toBe(vscodeUserPath());
   });
 
   it("returns claude project path for claude/project with explicit root", () => {
@@ -59,6 +105,12 @@ describe("configPath", () => {
   it("returns opencode project path for opencode/project with explicit root", () => {
     expect(configPath("opencode", "project", "/my/project")).toBe(
       opencodeProjectPath("/my/project")
+    );
+  });
+
+  it("returns vscode project path for vscode/project with explicit root", () => {
+    expect(configPath("vscode", "project", "/my/project")).toBe(
+      vscodeProjectPath("/my/project")
     );
   });
 });

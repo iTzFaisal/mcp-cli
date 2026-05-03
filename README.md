@@ -1,6 +1,6 @@
 # mcps
 
-**`npx skills` for MCP servers.** A unified CLI to manage [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) servers across **Claude Code**, **OpenCode**, and **Cline** — from one place.
+**`npx skills` for MCP servers.** A unified CLI to manage [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) servers across **Claude Code**, **OpenCode**, **Cline**, and **VS Code** — from one place.
 
 ## Vision
 
@@ -10,7 +10,7 @@
 
 - **Node.js** 18+ (ES2022 support required)
 - **npm** 9+
-- **Claude Code**, **OpenCode**, and/or **Cline** installed (to actually use the managed servers)
+- **Claude Code**, **OpenCode**, **Cline**, and/or **VS Code** installed (to actually use the managed servers)
 
 ## Install
 
@@ -37,16 +37,38 @@ npm link
 ```bash
 mcps list                              # all servers across all tools and scopes
 mcps list --tool claude                # only Claude Code servers
+mcps list --tool vscode                # only VS Code servers
 mcps list --scope project             # only project-level servers
 mcps ls -t opencode -s user           # short alias + combined filters
 ```
 
 ### Add a server
 
-**Interactive** (prompts for tool, scope, transport, and command/URL):
+`mcps add` can auto-detect bundled MCP presets for known server names. When a preset exists, the interactive flow shows the discovered config and lets you:
+
+- use the preset as-is
+- edit the preset before saving
+- ignore it and enter the server manually
+
+Preset matching is case-insensitive, and explicit non-interactive flags always win over any bundled preset.
+
+**Interactive** (prompts for tool, scope, then uses a preset when available or falls back to manual transport/command/URL entry):
 
 ```bash
 mcps add brave-search
+mcps add github
+mcps add consensus
+```
+
+Example preset flow:
+
+```text
+$ mcps add github
+Found preset for "github": http https://api.githubcopilot.com/mcp/ (Authorization=Bearer YOUR_GITHUB_PAT)
+? Found an MCP configuration for "github". How would you like to continue?
+  Use preset
+  Edit preset
+  Enter manually
 ```
 
 **Non-interactive** (all flags provided, no prompts):
@@ -54,19 +76,28 @@ mcps add brave-search
 ```bash
 mcps add myserver -t claude -s user --transport stdio --command "npx -y my-server"
 mcps add notion -t all -s user --transport http --url "https://mcp.notion.com/mcp"
+mcps add github -t claude -s user --transport http --url "https://api.githubcopilot.com/mcp/" --header "Authorization=Bearer YOUR_GITHUB_PAT"
 mcps add myserver -t opencode -s project --transport stdio --command "node server.js" -e API_KEY=xxx
+mcps add playwright -t vscode -s project --transport stdio --command "npx -y @microsoft/mcp-server-playwright"
 ```
 
 Options:
 
 | Flag                   | Description                                             |
 | ---------------------- | ------------------------------------------------------- |
-| `-t, --tool <tool>`    | `claude`, `opencode`, `cline`, or `all`                 |
+| `-t, --tool <tool>`    | `claude`, `opencode`, `cline`, `vscode`, or `all`       |
 | `-s, --scope <scope>`  | `user` (global) or `project`                            |
 | `--transport <type>`   | `stdio` (local command) or `http` (remote URL)          |
 | `--command <cmd>`      | Command for stdio transport (e.g. `"npx -y my-server"`) |
 | `--url <url>`          | URL for http transport                                  |
 | `-e, --env <pairs...>` | Environment variables (`KEY=VALUE`)                     |
+| `--header <pair>`      | HTTP header for http transport; repeatable              |
+
+Notes:
+
+- Presets are only used in interactive mode.
+- `--env` is only valid with `stdio` transport.
+- `--header` is only valid with `http` transport.
 
 ### Copy a server
 
@@ -81,7 +112,7 @@ Options:
 
 | Flag                   | Description                                                |
 | ---------------------- | ---------------------------------------------------------- |
-| `-t, --tool <tool>`    | Target tool: `claude`, `opencode`, `cline`, or `all`       |
+| `-t, --tool <tool>`    | Target tool: `claude`, `opencode`, `cline`, `vscode`, or `all` |
 | `-s, --scope <scope>`  | Target scope: `user` or `project`                          |
 | `--from-tool <tool>`   | Source tool (disambiguate when server exists in multiple)  |
 | `--from-scope <scope>` | Source scope (disambiguate when server exists in multiple) |
@@ -100,7 +131,7 @@ Options:
 
 | Flag                   | Description                                                |
 | ---------------------- | ---------------------------------------------------------- |
-| `-t, --tool <tool>`    | Target tool: `claude`, `opencode`, `cline`, or `all`       |
+| `-t, --tool <tool>`    | Target tool: `claude`, `opencode`, `cline`, `vscode`, or `all` |
 | `-s, --scope <scope>`  | Target scope: `user` or `project`                          |
 | `--from-tool <tool>`   | Source tool (disambiguate when server exists in multiple)  |
 | `--from-scope <scope>` | Source scope (disambiguate when server exists in multiple) |
@@ -113,7 +144,7 @@ mcps compare brave-search             # show where it is already configured
 mcps compare                          # interactive selection in a TTY
 ```
 
-`compare` checks the supported locations for one MCP server across Claude Code, OpenCode, and Cline, then shows:
+`compare` checks the supported locations for one MCP server across Claude Code, OpenCode, Cline, and VS Code, then shows:
 
 - where the server is already configured
 - which supported tool/scope locations are still missing
@@ -135,6 +166,7 @@ mcps rm myserver --tool all --scope user -y
 | Claude Code | `~/.claude.json` → `mcpServers`                                                                                                | `./.mcp.json` → `mcpServers` |
 | OpenCode    | `~/.config/opencode/opencode.json` → `mcp`                                                                                     | `./opencode.json` → `mcp`    |
 | Cline       | `~/Library/Application Support/Code/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json` → `mcpServers` | N/A (user-scope only)        |
+| VS Code     | `~/Library/Application Support/Code/User/mcp.json` on macOS, `~/.config/Code/User/mcp.json` on Linux, `%APPDATA%/Code/User/mcp.json` on Windows → `servers` | `./.vscode/mcp.json` → `servers` |
 
 Config files are never fully replaced — `mcps` reads, modifies only the relevant section, and writes back atomically, preserving all other fields.
 
@@ -178,7 +210,8 @@ src/
 └── translators/
     ├── claude-code.ts    # ↔ Claude Code format (command+args split, stdio|http|sse)
     ├── opencode.ts       # ↔ OpenCode format (command as array, local|remote, enabled)
-    └── cline.ts          # ↔ Cline format (command+args split, streamableHttp|sse, disabled)
+    ├── cline.ts          # ↔ Cline format (command+args split, streamableHttp|sse, disabled)
+    └── vscode.ts         # ↔ VS Code format (command+args split, http|sse, no disabled state)
 ```
 
 ## License

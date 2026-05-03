@@ -4,14 +4,15 @@ import pc from "picocolors";
 import { readServers } from "../config/reader.js";
 import { writeServer, removeServer } from "../config/writer.js";
 import type { LocatedServer, Scope, Tool } from "../types.js";
+import { ALL_TOOLS, supportsScope, toolLabel } from "../tools.js";
 
 export const moveCommand = new Command("move")
   .alias("mv")
   .description("Move an MCP server to another tool or scope")
   .argument("<name>", "Server name")
-  .option("-t, --tool <tool>", "Target tool: claude | opencode | cline | all")
+  .option("-t, --tool <tool>", "Target tool: claude | opencode | cline | vscode | all")
   .option("-s, --scope <scope>", "Target scope: user | project")
-  .option("--from-tool <tool>", "Source tool: claude | opencode | cline")
+  .option("--from-tool <tool>", "Source tool: claude | opencode | cline | vscode")
   .option("--from-scope <scope>", "Source scope: user | project")
   .option("-f, --force", "Overwrite if server exists at destination")
   .addHelpText(
@@ -50,17 +51,18 @@ async function runNonInteractive(
   const targetScope = opts.scope as Scope;
 
   if (opts.tool === "both") {
-    clack.log.error(`"both" is not supported. Use "all" for all tools, or specify claude, opencode, or cline.`);
+    clack.log.error(`"both" is not supported. Use "all" for all tools, or specify claude, opencode, cline, or vscode.`);
     return;
   }
   if (
     targetTool !== "claude" &&
     targetTool !== "opencode" &&
     targetTool !== "cline" &&
+    targetTool !== "vscode" &&
     targetTool !== "all"
   ) {
     clack.log.error(
-      `Invalid tool "${opts.tool}". Use claude, opencode, cline, or all.`
+      `Invalid tool "${opts.tool}". Use claude, opencode, cline, vscode, or all.`
     );
     return;
   }
@@ -72,9 +74,9 @@ async function runNonInteractive(
   let source = matches;
 
   if (opts.fromTool) {
-    if (opts.fromTool !== "claude" && opts.fromTool !== "opencode" && opts.fromTool !== "cline") {
+    if (opts.fromTool !== "claude" && opts.fromTool !== "opencode" && opts.fromTool !== "cline" && opts.fromTool !== "vscode") {
       clack.log.error(
-        `Invalid --from-tool "${opts.fromTool}". Use claude, opencode, or cline.`
+        `Invalid --from-tool "${opts.fromTool}". Use claude, opencode, cline, or vscode.`
       );
       return;
     }
@@ -112,7 +114,7 @@ async function runNonInteractive(
   const located = source[0];
   const targets: Tool[] =
     targetTool === "all"
-      ? ["claude", "opencode", "cline"]
+      ? ALL_TOOLS
       : [targetTool as Tool];
 
   const nonSourceTargets = targets.filter(
@@ -127,7 +129,7 @@ async function runNonInteractive(
   }
 
   const effectiveTargets = nonSourceTargets.filter(
-    (t) => !(t === "cline" && targetScope === "project")
+    (t) => supportsScope(t, targetScope)
   );
 
   if (effectiveTargets.length === 0) {
@@ -164,7 +166,7 @@ async function runNonInteractive(
   if (removed) {
     clack.log.success(
       pc.green(
-        `Moved "${name}" from ${located.tool} (${located.scope}) to ${nonSourceTargets.map((t) => `${t} (${targetScope})`).join(", ")}`
+        `Moved "${name}" from ${located.tool} (${located.scope}) to ${effectiveTargets.map((t) => `${t} (${targetScope})`).join(", ")}`
       )
     );
   }
@@ -181,13 +183,13 @@ async function runInteractive(
 
   if (matches.length === 1) {
     source = matches[0];
-    clack.log.info(`Found in ${source.tool} (${source.scope})`);
+    clack.log.info(`Found in ${toolLabel(source.tool)} (${source.scope})`);
   } else {
     const sourceResult = await clack.select({
       message: "Which source to move from?",
       options: matches.map((ls) => ({
         value: ls,
-        label: `${ls.tool} (${ls.scope})`,
+        label: `${toolLabel(ls.tool)} (${ls.scope})`,
       })),
     });
     if (clack.isCancel(sourceResult)) {
@@ -199,12 +201,13 @@ async function runInteractive(
 
   const toolResult = await clack.select({
     message: "Move to which tool?",
-    options: [
-      { value: "claude", label: "Claude Code" },
-      { value: "opencode", label: "OpenCode" },
-      { value: "cline", label: "Cline" },
-      { value: "all", label: "All" },
-    ],
+        options: [
+          { value: "claude", label: "Claude Code" },
+          { value: "opencode", label: "OpenCode" },
+          { value: "cline", label: "Cline" },
+          { value: "vscode", label: "VS Code" },
+          { value: "all", label: "All" },
+        ],
   });
   if (clack.isCancel(toolResult)) {
     clack.outro(pc.yellow("Cancelled."));
@@ -227,8 +230,9 @@ async function runInteractive(
 
   const targets: Tool[] =
     targetTool === "all"
-      ? ["claude", "opencode", "cline"]
+      ? ALL_TOOLS
       : [targetTool as Tool];
+  const movedTargets: Tool[] = [];
 
   const isSameSource = targets.some(
     (t) => t === source.tool && targetScope === source.scope
@@ -245,7 +249,7 @@ async function runInteractive(
 
   for (const t of targets) {
     if (t === source.tool && targetScope === source.scope) continue;
-    if (t === "cline" && targetScope === "project") {
+    if (!supportsScope(t, targetScope)) {
       clack.log.warn("Cline only supports user scope. Skipping.");
       continue;
     }
@@ -266,6 +270,7 @@ async function runInteractive(
     }
 
     writeServer(source.server, t, targetScope);
+    movedTargets.push(t);
     clack.log.success(`Wrote "${name}" to ${t} (${targetScope})`);
   }
 
@@ -273,7 +278,7 @@ async function runInteractive(
   if (removed) {
     clack.log.success(
       pc.green(
-        `Moved "${name}" from ${source.tool} (${source.scope}) to ${targets.map((t) => `${t} (${targetScope})`).join(", ")}`
+        `Moved "${name}" from ${source.tool} (${source.scope}) to ${movedTargets.map((t) => `${t} (${targetScope})`).join(", ")}`
       )
     );
   }

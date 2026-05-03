@@ -1,4 +1,8 @@
-## ADDED Requirements
+## Purpose
+
+Define how `mcps copy` duplicates MCP server configurations across supported tools and scopes while preserving server properties.
+
+## Requirements
 
 ### Requirement: Copy MCP server to another tool or scope
 The system SHALL provide a `copy` command (alias `cp`) that duplicates an existing MCP server configuration to a different tool, scope, or both, preserving all server properties (command/url, env, headers) via the universal model.
@@ -14,6 +18,10 @@ The system SHALL provide a `copy` command (alias `cp`) that duplicates an existi
 #### Scenario: Copy across both tool and scope
 - **WHEN** user runs `mcps copy myserver --tool opencode --scope project` and the server exists in Claude Code user scope
 - **THEN** system reads from `~/.claude.json` and writes to `./opencode.json`
+
+#### Scenario: Copy from VS Code project to Claude Code user
+- **WHEN** user runs `mcps copy github --from-tool vscode --from-scope project --tool claude --scope user`
+- **THEN** system reads the server from `.vscode/mcp.json` and writes it to `~/.claude.json`
 
 ### Requirement: Auto-detect server source locations
 The system SHALL discover all locations where the named server is currently installed by reading all tool/scope combinations via `readServers()`.
@@ -35,7 +43,7 @@ The system SHALL provide an interactive wizard when no target flags are specifie
 
 #### Scenario: Interactive wizard flow
 - **WHEN** user runs `mcps copy brave-search` with no flags and the server is found
-- **THEN** system shows detected installations, prompts for target tool (Claude Code, OpenCode, or Both), then prompts for target scope (User or Project)
+- **THEN** system shows detected installations, prompts for target tool (Claude Code, OpenCode, Cline, VS Code, or All), then prompts for target scope (User or Project)
 
 #### Scenario: Interactive wizard with single source auto-detected
 - **WHEN** user runs `mcps copy brave-search` and only one source location exists
@@ -72,7 +80,7 @@ The system SHALL prevent accidental overwrites when the server already exists at
 - **THEN** system overwrites the existing server configuration without prompting
 
 ### Requirement: Copy to "all" tools
-The system SHALL support copying a server to Claude Code, OpenCode, and Cline simultaneously.
+The system SHALL support copying a server to Claude Code, OpenCode, Cline, and VS Code simultaneously.
 
 #### Scenario: Copy to all tools interactively
 - **WHEN** user selects "All" as the target tool in interactive mode
@@ -80,7 +88,7 @@ The system SHALL support copying a server to Claude Code, OpenCode, and Cline si
 
 #### Scenario: Copy to all tools non-interactively
 - **WHEN** user runs `mcps copy brave-search --tool all --scope user`
-- **THEN** system writes to Claude Code, OpenCode, and Cline user-scope configs without prompts
+- **THEN** system writes to Claude Code, OpenCode, Cline, and VS Code user-scope configs without prompts
 
 #### Scenario: Copy from Cline to Claude Code
 - **WHEN** user runs `mcps copy myserver --from cline --to claude`

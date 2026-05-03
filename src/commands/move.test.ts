@@ -25,6 +25,16 @@ describe("move command", () => {
     "settings"
   );
   const clineFile = path.join(clineDir, "cline_mcp_settings.json");
+  const vscodeUserDir = path.join(
+    tmpDir,
+    "Library",
+    "Application Support",
+    "Code",
+    "User"
+  );
+  const vscodeUserFile = path.join(vscodeUserDir, "mcp.json");
+  const vscodeProjectDir = path.join(projectDir, ".vscode");
+  const vscodeProjectFile = path.join(vscodeProjectDir, "mcp.json");
 
   const runCli = (args: string) => {
     try {
@@ -47,6 +57,8 @@ describe("move command", () => {
     fs.mkdirSync(opencodeDir, { recursive: true });
     fs.mkdirSync(clineDir, { recursive: true });
     fs.mkdirSync(projectDir, { recursive: true });
+    fs.mkdirSync(vscodeUserDir, { recursive: true });
+    fs.mkdirSync(vscodeProjectDir, { recursive: true });
     fs.mkdirSync(path.join(projectDir, ".git"), { recursive: true });
 
     fs.writeFileSync(claudeFile, JSON.stringify({ mcpServers: {} }));
@@ -54,6 +66,8 @@ describe("move command", () => {
     fs.writeFileSync(claudeProjectFile, JSON.stringify({ mcpServers: {} }));
     fs.writeFileSync(opencodeProjectFile, JSON.stringify({ mcp: {} }));
     fs.writeFileSync(clineFile, JSON.stringify({ mcpServers: {} }));
+    fs.writeFileSync(vscodeUserFile, JSON.stringify({ servers: {} }));
+    fs.writeFileSync(vscodeProjectFile, JSON.stringify({ servers: {} }));
   });
 
   afterEach(() => {
@@ -270,6 +284,55 @@ describe("move command", () => {
 
       const claudeData = JSON.parse(fs.readFileSync(claudeFile, "utf-8"));
       expect(claudeData.mcpServers["api-server"]).toBeUndefined();
+    });
+
+    it("moves from VS Code project to Claude user", () => {
+      fs.writeFileSync(
+        vscodeProjectFile,
+        JSON.stringify({
+          servers: {
+            github: {
+              type: "http",
+              url: "https://mcp.example.com/project",
+            },
+          },
+        })
+      );
+
+      runCli(
+        "move github --from-tool vscode --from-scope project --tool claude --scope user"
+      );
+
+      const claudeData = JSON.parse(fs.readFileSync(claudeFile, "utf-8"));
+      expect(claudeData.mcpServers.github).toEqual({
+        type: "http",
+        url: "https://mcp.example.com/project",
+      });
+
+      const vscodeData = JSON.parse(fs.readFileSync(vscodeProjectFile, "utf-8"));
+      expect(vscodeData.servers.github).toBeUndefined();
+    });
+
+    it("moves to VS Code project", () => {
+      fs.writeFileSync(
+        claudeFile,
+        JSON.stringify({
+          mcpServers: {
+            playwright: { command: "npx", args: ["-y", "@microsoft/mcp-server-playwright"] },
+          },
+        })
+      );
+
+      runCli("move playwright --tool vscode --scope project");
+
+      const vscodeData = JSON.parse(fs.readFileSync(vscodeProjectFile, "utf-8"));
+      expect(vscodeData.servers.playwright).toEqual({
+        command: "npx",
+        args: ["-y", "@microsoft/mcp-server-playwright"],
+      });
+
+      const claudeData = JSON.parse(fs.readFileSync(claudeFile, "utf-8"));
+      expect(claudeData.mcpServers.playwright).toBeUndefined();
     });
   });
 

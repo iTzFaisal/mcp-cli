@@ -4,12 +4,13 @@ import pc from "picocolors";
 import { readServers } from "../config/reader.js";
 import { removeServer } from "../config/writer.js";
 import type { Scope, Tool } from "../types.js";
+import { ALL_TOOLS, supportsScope } from "../tools.js";
 
 export const removeCommand = new Command("rm")
   .alias("remove")
   .description("Remove an MCP server from one or more tools")
   .argument("<name>", "Server name")
-  .option("-t, --tool <tool>", "Tool: claude | opencode | cline | all (default: all)")
+  .option("-t, --tool <tool>", "Tool: claude | opencode | cline | vscode | all (default: all)")
   .option("-s, --scope <scope>", "Scope: user | project (default: user)")
   .option("-y, --yes", "Skip confirmation prompt")
   .addHelpText(
@@ -26,11 +27,11 @@ Examples:
     const scope = (opts.scope ?? "user") as Scope;
 
     if (opts.tool === "both") {
-      clack.log.error(`"both" is not supported. Use "all" for all tools, or specify claude, opencode, or cline.`);
+      clack.log.error(`"both" is not supported. Use "all" for all tools, or specify claude, opencode, cline, or vscode.`);
       return;
     }
-    if (tool !== "claude" && tool !== "opencode" && tool !== "cline" && tool !== "all") {
-      clack.log.error(`Invalid tool "${opts.tool}". Use claude, opencode, cline, or all.`);
+    if (tool !== "claude" && tool !== "opencode" && tool !== "cline" && tool !== "vscode" && tool !== "all") {
+      clack.log.error(`Invalid tool "${opts.tool}". Use claude, opencode, cline, vscode, or all.`);
       return;
     }
     if (scope !== "user" && scope !== "project") {
@@ -39,14 +40,14 @@ Examples:
     }
 
     const targets: Tool[] =
-      tool === "all" ? ["claude", "opencode", "cline"] : [tool as Tool];
+      tool === "all" ? ALL_TOOLS : [tool as Tool];
 
     const scopes: Scope[] = opts.scope ? [scope] : ["user", "project"];
     let found = false;
 
     for (const t of targets) {
       for (const s of scopes) {
-        if (t === "cline" && s === "project") {
+        if (!supportsScope(t, s)) {
           clack.log.warn("Cline only supports user scope. Skipping.");
           continue;
         }

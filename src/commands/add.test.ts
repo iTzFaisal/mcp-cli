@@ -369,6 +369,32 @@ describe("add command", () => {
     );
   });
 
+  it("adds a server to VS Code project scope", async () => {
+    mockedReadServers.mockReturnValue([]);
+
+    await runAddAction([
+      "playwright",
+      "-t",
+      "vscode",
+      "-s",
+      "project",
+      "--transport",
+      "stdio",
+      "--command",
+      "npx -y @microsoft/mcp-server-playwright",
+    ]);
+
+    expect(mockedWriteServer).toHaveBeenCalledWith(
+      {
+        name: "playwright",
+        transport: "stdio",
+        command: ["npx", "-y", "@microsoft/mcp-server-playwright"],
+      },
+      "vscode",
+      "project"
+    );
+  });
+
   it("opens with no tools selected and shows the shortcut hint", async () => {
     mockedReadServers.mockReturnValue([]);
     mockedMultiselect.mockResolvedValueOnce(["claude", "opencode", "cline"]);
@@ -416,6 +442,23 @@ describe("add command", () => {
       },
       "cline",
       "user"
+    );
+  });
+
+  it("includes VS Code in the interactive tool options", async () => {
+    mockedReadServers.mockReturnValue([]);
+    mockedMultiselect.mockResolvedValueOnce(["vscode"]);
+    mockedSelect.mockResolvedValueOnce("user").mockResolvedValueOnce("http");
+    mockedText.mockResolvedValueOnce("https://mcp.example.com/mcp").mockResolvedValueOnce("");
+
+    await runAddAction(["vscode-srv"]);
+
+    expect(mockedMultiselect).toHaveBeenCalledWith(
+      expect.objectContaining({
+        options: expect.arrayContaining([
+          expect.objectContaining({ value: "vscode", label: "VS Code" }),
+        ]),
+      })
     );
   });
 });

@@ -3,6 +3,7 @@ import * as clack from "@clack/prompts";
 import pc from "picocolors";
 import { readServers } from "../config/reader.js";
 import type { LocatedServer, Scope, Tool } from "../types.js";
+import { toolLabel as formatToolLabel } from "../tools.js";
 
 export interface CompareTarget {
   tool: Tool;
@@ -21,6 +22,8 @@ export const SUPPORTED_COMPARE_TARGETS: CompareTarget[] = [
   { tool: "opencode", scope: "user" },
   { tool: "opencode", scope: "project" },
   { tool: "cline", scope: "user" },
+  { tool: "vscode", scope: "user" },
+  { tool: "vscode", scope: "project" },
 ];
 
 export const compareCommand = new Command("compare")
@@ -194,7 +197,5 @@ function renderCompareResult(
 }
 
 function toolLabel(tool: Tool): string {
-  if (tool === "claude") return "Claude Code";
-  if (tool === "opencode") return "OpenCode";
-  return "Cline";
+  return formatToolLabel(tool);
 }

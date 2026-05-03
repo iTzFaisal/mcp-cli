@@ -5,13 +5,12 @@ import { findBundledPreset } from "../catalog/presets.js";
 import { readServers } from "../config/reader.js";
 import { writeServer } from "../config/writer.js";
 import type { McpServer, Scope, Tool, Transport } from "../types.js";
-
-const ALL_TOOLS: Tool[] = ["claude", "opencode", "cline"];
+import { ALL_TOOLS, supportsScope } from "../tools.js";
 
 export const addCommand = new Command("add")
   .description("Add an MCP server to one or more tools")
   .argument("<name>", "Server name")
-  .option("-t, --tool <tool>", "Tool: claude | opencode | cline | all")
+  .option("-t, --tool <tool>", "Tool: claude | opencode | cline | vscode | all")
   .option("-s, --scope <scope>", "Scope: user | project")
   .option("--transport <type>", "Transport: stdio | http")
   .option(
@@ -55,7 +54,7 @@ Examples:
 
       if (opts.tool === "both") {
         clack.log.error(
-          `"both" is not supported. Use "all" for all tools, or specify claude, opencode, or cline.`,
+          `"both" is not supported. Use "all" for all tools, or specify claude, opencode, cline, or vscode.`,
         );
         return;
       }
@@ -63,10 +62,11 @@ Examples:
         tool !== "claude" &&
         tool !== "opencode" &&
         tool !== "cline" &&
+        tool !== "vscode" &&
         tool !== "all"
       ) {
         clack.log.error(
-          `Invalid tool "${opts.tool}". Use claude, opencode, cline, or all.`,
+          `Invalid tool "${opts.tool}". Use claude, opencode, cline, vscode, or all.`,
         );
         return;
       }
@@ -162,7 +162,7 @@ Examples:
     if (!server) return;
 
     for (const target of tools) {
-      if (target === "cline" && scope === "project") {
+      if (!supportsScope(target, scope)) {
         clack.log.warn("Cline only supports user scope. Skipping.");
         continue;
       }
@@ -380,6 +380,7 @@ async function promptForTools(): Promise<Tool[] | symbol> {
       { value: "claude", label: "Claude Code" },
       { value: "opencode", label: "OpenCode" },
       { value: "cline", label: "Cline" },
+      { value: "vscode", label: "VS Code" },
     ],
   }) as Promise<Tool[] | symbol>;
 }

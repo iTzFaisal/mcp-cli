@@ -1,15 +1,4 @@
-## Purpose
-
-Define how `mcps move` relocates MCP server configurations across supported tools and scopes with safe write-before-remove semantics.
-
-## Requirements
-
-### Requirement: Move command registration
-The CLI SHALL register a `move` command with alias `mv` that accepts a server name as a required argument.
-
-#### Scenario: Command is accessible via both name and alias
-- **WHEN** user runs `mcps move <name>` or `mcps mv <name>`
-- **THEN** the move command is invoked with the given server name
+## MODIFIED Requirements
 
 ### Requirement: Non-interactive move
 The move command SHALL support a non-interactive mode when `--tool` and `--scope` flags are both provided.
@@ -76,32 +65,3 @@ The move command SHALL launch an interactive wizard when `--tool` and `--scope` 
 #### Scenario: Interactive cancel
 - **WHEN** the user cancels any prompt
 - **THEN** the operation is aborted with no changes made
-
-### Requirement: Atomic move semantics
-The system SHALL write the server to the destination before removing it from the source.
-
-#### Scenario: Write-before-remove order
-- **WHEN** a move operation is executed
-- **THEN** the system first writes the server to the destination config, and only if that succeeds, removes it from the source config
-
-#### Scenario: Source preserved on write failure
-- **WHEN** the write to the destination fails
-- **THEN** the source configuration is left unchanged
-
-### Requirement: Move preserves remote authorization headers across tools
-The system SHALL preserve remote authorization headers when moving an `http` MCP server, including when Cline is the source or destination.
-
-#### Scenario: Move authenticated remote server from Cline to Claude Code
-- **WHEN** user runs `mcps move api-server --from-tool cline --from-scope user --tool claude --scope user` and the Cline server has `headers.Authorization: "Bearer API_KEY"`
-- **THEN** the destination Claude Code server includes the same `headers.Authorization` value before the source is removed
-
-#### Scenario: Move authenticated remote server from Claude Code to Cline
-- **WHEN** user runs `mcps move api-server --from-tool claude --from-scope user --tool cline --scope user` and the Claude Code server has `headers.Authorization: "Bearer API_KEY"`
-- **THEN** the destination Cline server includes the same `headers.Authorization` value before the source is removed
-
-### Requirement: Help text and examples
-The move command SHALL display usage examples in its help output.
-
-#### Scenario: Help shows move examples
-- **WHEN** user runs `mcps move --help`
-- **THEN** the output includes example commands for interactive and non-interactive usage

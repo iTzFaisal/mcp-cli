@@ -25,6 +25,16 @@ describe("copy command", () => {
     "settings"
   );
   const clineFile = path.join(clineDir, "cline_mcp_settings.json");
+  const vscodeUserDir = path.join(
+    tmpDir,
+    "Library",
+    "Application Support",
+    "Code",
+    "User"
+  );
+  const vscodeUserFile = path.join(vscodeUserDir, "mcp.json");
+  const vscodeProjectDir = path.join(projectDir, ".vscode");
+  const vscodeProjectFile = path.join(vscodeProjectDir, "mcp.json");
 
   const runCli = (args: string) => {
     try {
@@ -47,6 +57,8 @@ describe("copy command", () => {
     fs.mkdirSync(opencodeDir, { recursive: true });
     fs.mkdirSync(clineDir, { recursive: true });
     fs.mkdirSync(projectDir, { recursive: true });
+    fs.mkdirSync(vscodeUserDir, { recursive: true });
+    fs.mkdirSync(vscodeProjectDir, { recursive: true });
     fs.mkdirSync(path.join(projectDir, ".git"), { recursive: true });
 
     fs.writeFileSync(claudeFile, JSON.stringify({ mcpServers: {} }));
@@ -54,6 +66,8 @@ describe("copy command", () => {
     fs.writeFileSync(claudeProjectFile, JSON.stringify({ mcpServers: {} }));
     fs.writeFileSync(opencodeProjectFile, JSON.stringify({ mcp: {} }));
     fs.writeFileSync(clineFile, JSON.stringify({ mcpServers: {} }));
+    fs.writeFileSync(vscodeUserFile, JSON.stringify({ servers: {} }));
+    fs.writeFileSync(vscodeProjectFile, JSON.stringify({ servers: {} }));
   });
 
   afterEach(() => {
@@ -299,6 +313,51 @@ describe("copy command", () => {
         headers: { Authorization: "Bearer API_KEY" },
         disabled: false,
         timeout: 60,
+      });
+    });
+
+    it("copies from VS Code project to Claude user", () => {
+      fs.writeFileSync(
+        vscodeProjectFile,
+        JSON.stringify({
+          servers: {
+            github: {
+              type: "http",
+              url: "https://mcp.example.com/project",
+              headers: { Authorization: "Bearer token" },
+            },
+          },
+        })
+      );
+
+      runCli(
+        "copy github --from-tool vscode --from-scope project --tool claude --scope user"
+      );
+
+      const data = JSON.parse(fs.readFileSync(claudeFile, "utf-8"));
+      expect(data.mcpServers.github).toEqual({
+        type: "http",
+        url: "https://mcp.example.com/project",
+        headers: { Authorization: "Bearer token" },
+      });
+    });
+
+    it("copies to VS Code project", () => {
+      fs.writeFileSync(
+        claudeFile,
+        JSON.stringify({
+          mcpServers: {
+            playwright: { command: "npx", args: ["-y", "@microsoft/mcp-server-playwright"] },
+          },
+        })
+      );
+
+      runCli("copy playwright --tool vscode --scope project");
+
+      const data = JSON.parse(fs.readFileSync(vscodeProjectFile, "utf-8"));
+      expect(data.servers.playwright).toEqual({
+        command: "npx",
+        args: ["-y", "@microsoft/mcp-server-playwright"],
       });
     });
   });

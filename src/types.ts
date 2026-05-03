@@ -2,7 +2,7 @@ export type Transport = "stdio" | "http";
 
 export type Scope = "user" | "project";
 
-export type Tool = "claude" | "opencode" | "cline";
+export type Tool = "claude" | "opencode" | "cline" | "vscode";
 
 export interface McpServer {
   name: string;

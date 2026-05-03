@@ -12,12 +12,18 @@ describe("readServers", () => {
   const projectDir = path.join(tmpDir, "project");
   const claudeProjectFile = path.join(projectDir, ".mcp.json");
   const opencodeProjectFile = path.join(projectDir, "opencode.json");
+  const vscodeUserDir = path.join(tmpDir, "Library", "Application Support", "Code", "User");
+  const vscodeUserFile = path.join(vscodeUserDir, "mcp.json");
+  const vscodeProjectDir = path.join(projectDir, ".vscode");
+  const vscodeProjectFile = path.join(vscodeProjectDir, "mcp.json");
 
   let configPathSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
     fs.mkdirSync(opencodeDir, { recursive: true });
     fs.mkdirSync(projectDir, { recursive: true });
+    fs.mkdirSync(vscodeUserDir, { recursive: true });
+    fs.mkdirSync(vscodeProjectDir, { recursive: true });
 
     configPathSpy = vi.spyOn(pathsModule, "configPath");
   });
@@ -32,7 +38,9 @@ describe("readServers", () => {
       (tool: string, scope: string) => {
         if (tool === "claude" && scope === "user") return claudeUserFile;
         if (tool === "opencode" && scope === "user") return opencodeUserFile;
+        if (tool === "vscode" && scope === "user") return vscodeUserFile;
         if (tool === "claude" && scope === "project") return claudeProjectFile;
+        if (tool === "vscode" && scope === "project") return vscodeProjectFile;
         return opencodeProjectFile;
       }
     );
@@ -62,6 +70,17 @@ describe("readServers", () => {
       })
     );
     fs.writeFileSync(
+      vscodeUserFile,
+      JSON.stringify({
+        servers: {
+          "vscode-user": {
+            type: "http",
+            url: "https://mcp.example.com/user",
+          },
+        },
+      })
+    );
+    fs.writeFileSync(
       claudeProjectFile,
       JSON.stringify({
         mcpServers: {
@@ -81,13 +100,27 @@ describe("readServers", () => {
         },
       })
     );
+    fs.writeFileSync(
+      vscodeProjectFile,
+      JSON.stringify({
+        servers: {
+          "vscode-project": {
+            command: "node",
+            args: ["server.js"],
+            env: { TOKEN: "${input:token}" },
+          },
+        },
+      })
+    );
 
     const servers = readServers();
-    expect(servers.length).toBe(4);
+    expect(servers.length).toBe(6);
 
     const names = servers.map((s) => s.server.name);
     expect(names).toContain("test-server");
     expect(names).toContain("project-server");
+    expect(names).toContain("vscode-user");
+    expect(names).toContain("vscode-project");
   });
 
   it("filters by tool", () => {
@@ -190,5 +223,38 @@ describe("readServers", () => {
     const servers = readServers("opencode", "user");
     expect(servers[0].server.transport).toBe("http");
     expect(servers[0].server.url).toBe("https://mcp.example.com");
+  });
+
+  it("reads vscode servers from the servers key", () => {
+    setupMocks();
+    fs.writeFileSync(
+      vscodeUserFile,
+      JSON.stringify({
+        inputs: [{ id: "token" }],
+        servers: {
+          github: {
+            command: "npx",
+            args: ["-y", "server"],
+            env: { API_KEY: "${input:token}" },
+          },
+        },
+      })
+    );
+
+    const servers = readServers("vscode", "user");
+    expect(servers).toHaveLength(1);
+    expect(servers[0].server).toEqual({
+      name: "github",
+      transport: "stdio",
+      command: ["npx", "-y", "server"],
+      env: { API_KEY: "${input:token}" },
+      disabled: undefined,
+    });
+  });
+
+  it("returns empty for missing vscode project config", () => {
+    setupMocks();
+    const servers = readServers("vscode", "project");
+    expect(servers).toEqual([]);
   });
 });

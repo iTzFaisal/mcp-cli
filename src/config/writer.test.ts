@@ -12,6 +12,8 @@ describe("writeServer and removeServer", () => {
   const opencodeFile = path.join(opencodeDir, "opencode.json");
   const clineDir = path.join(tmpDir, "config", "cline");
   const clineFile = path.join(clineDir, "cline_mcp_settings.json");
+  const vscodeDir = path.join(tmpDir, ".vscode");
+  const vscodeFile = path.join(vscodeDir, "mcp.json");
 
   const stdioServer: McpServer = {
     name: "test-server",
@@ -34,6 +36,7 @@ describe("writeServer and removeServer", () => {
     fs.mkdirSync(tmpDir, { recursive: true });
     fs.mkdirSync(opencodeDir, { recursive: true });
     fs.mkdirSync(clineDir, { recursive: true });
+    fs.mkdirSync(vscodeDir, { recursive: true });
 
     configPathSpy = vi.spyOn(pathsModule, "configPath");
   });
@@ -57,6 +60,10 @@ describe("writeServer and removeServer", () => {
 
   function mockClinePath() {
     configPathSpy.mockReturnValue(clineFile);
+  }
+
+  function mockVsCodePath() {
+    configPathSpy.mockReturnValue(vscodeFile);
   }
 
   describe("writeServer", () => {
@@ -185,6 +192,36 @@ describe("writeServer and removeServer", () => {
       const data = JSON.parse(fs.readFileSync(claudeFile, "utf-8"));
       expect(data.mcpServers["test-server"].command).toBe("npx");
     });
+
+    it("writes VS Code servers under the servers key", () => {
+      mockVsCodePath();
+      writeServer(httpServer, "vscode", "project");
+
+      const data = JSON.parse(fs.readFileSync(vscodeFile, "utf-8"));
+      expect(data.servers["http-server"]).toEqual({
+        type: "http",
+        url: "https://mcp.example.com",
+        headers: { Authorization: "Bearer token" },
+      });
+    });
+
+    it("preserves unrelated VS Code fields when writing", () => {
+      fs.writeFileSync(
+        vscodeFile,
+        JSON.stringify({ inputs: [{ id: "token" }], servers: {} })
+      );
+      mockVsCodePath();
+
+      writeServer(stdioServer, "vscode", "project");
+
+      const data = JSON.parse(fs.readFileSync(vscodeFile, "utf-8"));
+      expect(data.inputs).toEqual([{ id: "token" }]);
+      expect(data.servers["test-server"]).toEqual({
+        command: "npx",
+        args: ["-y", "my-server"],
+        env: { API_KEY: "secret" },
+      });
+    });
   });
 
   describe("removeServer", () => {
@@ -248,6 +285,26 @@ describe("writeServer and removeServer", () => {
 
       const result = removeServer("test", "claude", "user");
       expect(result).toBe(false);
+    });
+
+    it("removes server from VS Code config", () => {
+      fs.writeFileSync(
+        vscodeFile,
+        JSON.stringify({
+          inputs: [{ id: "token" }],
+          servers: {
+            "test-server": { command: "npx", args: ["-y", "server"] },
+          },
+        })
+      );
+      mockVsCodePath();
+
+      const result = removeServer("test-server", "vscode", "project");
+
+      expect(result).toBe(true);
+      const data = JSON.parse(fs.readFileSync(vscodeFile, "utf-8"));
+      expect(data.inputs).toEqual([{ id: "token" }]);
+      expect(data.servers["test-server"]).toBeUndefined();
     });
   });
 });

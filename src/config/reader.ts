@@ -4,6 +4,8 @@ import { configPath, detectProjectRoot } from "./paths.js";
 import { fromClaudeCode } from "../translators/claude-code.js";
 import { fromOpenCode } from "../translators/opencode.js";
 import { fromCline } from "../translators/cline.js";
+import { fromVsCode } from "../translators/vscode.js";
+import { ALL_TOOLS, supportsScope } from "../tools.js";
 
 function readJsonFile(filePath: string): Record<string, unknown> | null {
   try {
@@ -55,22 +57,39 @@ function readClineServers(): McpServer[] {
   );
 }
 
+function readVsCodeServers(scope: Scope): McpServer[] {
+  const projectRoot = scope === "project" ? detectProjectRoot() : undefined;
+  const filePath = configPath("vscode", scope, projectRoot);
+  const data = readJsonFile(filePath);
+  if (!data) return [];
+
+  const raw = data.servers as Record<string, unknown> | undefined;
+  if (!raw) return [];
+
+  return Object.entries(raw).map(([name, val]) =>
+    fromVsCode(name, val as Parameters<typeof fromVsCode>[1])
+  );
+}
+
 export function readServers(
   tool?: Tool,
   scope?: Scope
 ): LocatedServer[] {
-  const tools: Tool[] = tool ? [tool] : ["claude", "opencode", "cline"];
+  const tools: Tool[] = tool ? [tool] : ALL_TOOLS;
   const scopes: Scope[] = scope ? [scope] : ["user", "project"];
   const results: LocatedServer[] = [];
 
   for (const t of tools) {
     for (const s of scopes) {
+      if (!supportsScope(t, s)) continue;
+
       let servers: McpServer[];
       if (t === "cline") {
-        if (s !== "user") continue;
         servers = readClineServers();
       } else if (t === "claude") {
         servers = readClaudeServers(s);
+      } else if (t === "vscode") {
+        servers = readVsCodeServers(s);
       } else {
         servers = readOpenCodeServers(s);
       }

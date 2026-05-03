@@ -25,6 +25,16 @@ describe("CLI integration tests", () => {
     "settings"
   );
   const clineFile = path.join(clineDir, "cline_mcp_settings.json");
+  const vscodeUserDir = path.join(
+    tmpDir,
+    "Library",
+    "Application Support",
+    "Code",
+    "User"
+  );
+  const vscodeUserFile = path.join(vscodeUserDir, "mcp.json");
+  const vscodeProjectDir = path.join(projectDir, ".vscode");
+  const vscodeProjectFile = path.join(vscodeProjectDir, "mcp.json");
 
   const cliWithHome = (args: string, expectError = false) => {
     return execSync(`node ${BIN} ${args}`, {
@@ -58,6 +68,8 @@ describe("CLI integration tests", () => {
     fs.mkdirSync(opencodeDir, { recursive: true });
     fs.mkdirSync(clineDir, { recursive: true });
     fs.mkdirSync(projectDir, { recursive: true });
+    fs.mkdirSync(vscodeUserDir, { recursive: true });
+    fs.mkdirSync(vscodeProjectDir, { recursive: true });
     fs.mkdirSync(path.join(projectDir, ".git"), { recursive: true });
 
     fs.writeFileSync(claudeFile, JSON.stringify({ mcpServers: {} }));
@@ -65,6 +77,8 @@ describe("CLI integration tests", () => {
     fs.writeFileSync(claudeProjectFile, JSON.stringify({ mcpServers: {} }));
     fs.writeFileSync(opencodeProjectFile, JSON.stringify({ mcp: {} }));
     fs.writeFileSync(clineFile, JSON.stringify({ mcpServers: {} }));
+    fs.writeFileSync(vscodeUserFile, JSON.stringify({ servers: {} }));
+    fs.writeFileSync(vscodeProjectFile, JSON.stringify({ servers: {} }));
   });
 
   afterEach(() => {
@@ -79,6 +93,7 @@ describe("CLI integration tests", () => {
       expect(output).toContain("add");
       expect(output).toContain("rm");
       expect(output).toContain("compare");
+      expect(output).toContain("VS Code");
     });
 
     it("shows version with --version", () => {
@@ -145,6 +160,21 @@ describe("CLI integration tests", () => {
       expect(output).toContain("my-server");
       expect(output).toContain("claude");
       expect(output).toContain("opencode");
+    });
+
+    it("filters by --tool vscode", () => {
+      fs.writeFileSync(
+        vscodeUserFile,
+        JSON.stringify({
+          servers: {
+            "vscode-only": { command: "node", args: ["server.js"] },
+          },
+        })
+      );
+
+      const output = cliWithHome("list --tool vscode");
+      expect(output).toContain("vscode-only");
+      expect(output).toContain("vscode");
     });
 
     it("filters by --tool claude", () => {
@@ -315,6 +345,18 @@ describe("CLI integration tests", () => {
       expect(opencodeData.mcp["dual-srv"]).toBeDefined();
     });
 
+    it("adds a server to VS Code project config", () => {
+      cliWithHome(
+        'add playwright -t vscode -s project --transport stdio --command "npx -y @microsoft/mcp-server-playwright"'
+      );
+
+      const data = JSON.parse(fs.readFileSync(vscodeProjectFile, "utf-8"));
+      expect(data.servers.playwright).toEqual({
+        command: "npx",
+        args: ["-y", "@microsoft/mcp-server-playwright"],
+      });
+    });
+
     it("errors without --command for stdio", () => {
       const output = cliExpectError(
         "add nope -t claude -s user --transport stdio"
@@ -398,6 +440,22 @@ describe("CLI integration tests", () => {
       expect(data.mcp["to-remove"]).toBeUndefined();
     });
 
+    it("removes server from VS Code project config", () => {
+      fs.writeFileSync(
+        vscodeProjectFile,
+        JSON.stringify({
+          servers: {
+            "to-remove": { command: "npx", args: ["-y", "server"] },
+          },
+        })
+      );
+
+      cliWithHome("rm to-remove -t vscode -s project -y");
+
+      const data = JSON.parse(fs.readFileSync(vscodeProjectFile, "utf-8"));
+      expect(data.servers["to-remove"]).toBeUndefined();
+    });
+
     it("warns when server not found", () => {
       const output = cliExpectError("rm nonexistent -t claude -s user -y");
       expect(output).toContain("not found");
@@ -432,6 +490,8 @@ describe("CLI integration tests", () => {
       expect(compact(output)).toContain(compact("OpenCode (project)"));
       expect(compact(output)).toContain(compact("OpenCode (user)"));
       expect(compact(output)).toContain(compact("Cline (user)"));
+      expect(compact(output)).toContain(compact("VS Code (user)"));
+      expect(compact(output)).toContain(compact("VS Code (project)"));
       expect(compact(output)).not.toContain(compact("Cline (project)"));
       expect(compact(output)).toContain(
         compact(

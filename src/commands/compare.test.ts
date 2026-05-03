@@ -58,6 +58,8 @@ describe("compare command helpers", () => {
       { tool: "claude", scope: "project" },
       { tool: "opencode", scope: "user" },
       { tool: "cline", scope: "user" },
+      { tool: "vscode", scope: "user" },
+      { tool: "vscode", scope: "project" },
     ]);
     expect(SUPPORTED_COMPARE_TARGETS).not.toContainEqual({
       tool: "cline",
@@ -123,6 +125,20 @@ describe("compare command helpers", () => {
       expect.stringContaining("Claude Code (user)"),
       expect.stringContaining("Compare: alpha")
     );
+  });
+
+  it("generates VS Code copy hints", () => {
+    const source = locatedServer("brave-search", "claude", "user");
+    expect(
+      buildCopyHints(
+        "brave-search",
+        [{ tool: "vscode", scope: "project" }],
+        source,
+        true
+      )
+    ).toEqual([
+      "mcps copy brave-search --from-tool claude --from-scope user --tool vscode --scope project",
+    ]);
   });
 
   it("supports interactive source selection when multiple configured locations exist", async () => {
