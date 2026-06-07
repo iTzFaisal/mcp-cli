@@ -1,16 +1,16 @@
 # mcps
 
-**`npx skills` for MCP servers.** A unified CLI to manage [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) servers across **Claude Code**, **OpenCode**, **Cline**, and **VS Code** — from one place.
+A unified CLI to manage [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) servers across **Claude Code**, **OpenCode**, **Cline**, **VS Code**, and **Hermes Agent** — from one place.
 
 ## Vision
 
-[`npx skills`](https://github.com/vercel-labs/skills) made it trivial to discover and install agent skills from GitHub repos into any AI coding tool. `mcps` does the same for MCP servers — one command to find, add, and configure MCP servers across Claude Code, OpenCode, Cline, and beyond. No more manually hunting down config files and copy-pasting JSON. Just `mcps add <server>` and you're done.
+[`npx skills`](https://github.com/vercel-labs/skills) made it trivial to discover and install agent skills from GitHub repos into any AI coding tool. `mcps` does the same for MCP servers — one command to find, add, and configure MCP servers across Claude Code, OpenCode, Cline, VS Code, Hermes Agent, and beyond. No more manually hunting down config files and copy-pasting JSON or YAML. Just `mcps add <server>` and you're done.
 
 ## Prerequisites
 
 - **Node.js** 18+ (ES2022 support required)
 - **npm** 9+
-- **Claude Code**, **OpenCode**, **Cline**, and/or **VS Code** installed (to actually use the managed servers)
+- **Claude Code**, **OpenCode**, **Cline**, **VS Code**, and/or **Hermes Agent** installed (to actually use the managed servers)
 
 ## Install
 
@@ -38,6 +38,7 @@ npm link
 mcps list                              # all servers across all tools and scopes
 mcps list --tool claude                # only Claude Code servers
 mcps list --tool vscode                # only VS Code servers
+mcps list --tool hermes                # only Hermes Agent servers
 mcps list --scope project             # only project-level servers
 mcps ls -t opencode -s user           # short alias + combined filters
 ```
@@ -79,19 +80,20 @@ mcps add notion -t all -s user --transport http --url "https://mcp.notion.com/mc
 mcps add github -t claude -s user --transport http --url "https://api.githubcopilot.com/mcp/" --header "Authorization=Bearer YOUR_GITHUB_PAT"
 mcps add myserver -t opencode -s project --transport stdio --command "node server.js" -e API_KEY=xxx
 mcps add playwright -t vscode -s project --transport stdio --command "npx -y @microsoft/mcp-server-playwright"
+mcps add github -t hermes -s user --transport http --url "https://api.githubcopilot.com/mcp/" --header "Authorization=Bearer YOUR_GITHUB_PAT"
 ```
 
 Options:
 
-| Flag                   | Description                                             |
-| ---------------------- | ------------------------------------------------------- |
-| `-t, --tool <tool>`    | `claude`, `opencode`, `cline`, `vscode`, or `all`       |
-| `-s, --scope <scope>`  | `user` (global) or `project`                            |
-| `--transport <type>`   | `stdio` (local command) or `http` (remote URL)          |
-| `--command <cmd>`      | Command for stdio transport (e.g. `"npx -y my-server"`) |
-| `--url <url>`          | URL for http transport                                  |
-| `-e, --env <pairs...>` | Environment variables (`KEY=VALUE`)                     |
-| `--header <pair>`      | HTTP header for http transport; repeatable              |
+| Flag                   | Description                                                  |
+| ---------------------- | ------------------------------------------------------------ |
+| `-t, --tool <tool>`    | `claude`, `opencode`, `cline`, `vscode`, `hermes`, or `all`  |
+| `-s, --scope <scope>`  | `user` (global) or `project` (`hermes` supports `user` only) |
+| `--transport <type>`   | `stdio` (local command) or `http` (remote URL)               |
+| `--command <cmd>`      | Command for stdio transport (e.g. `"npx -y my-server"`)      |
+| `--url <url>`          | URL for http transport                                       |
+| `-e, --env <pairs...>` | Environment variables (`KEY=VALUE`)                          |
+| `--header <pair>`      | HTTP header for http transport; repeatable                   |
 
 Notes:
 
@@ -110,13 +112,13 @@ mcps cp myserver --tool all --scope user --force
 
 Options:
 
-| Flag                   | Description                                                |
-| ---------------------- | ---------------------------------------------------------- |
-| `-t, --tool <tool>`    | Target tool: `claude`, `opencode`, `cline`, `vscode`, or `all` |
-| `-s, --scope <scope>`  | Target scope: `user` or `project`                          |
-| `--from-tool <tool>`   | Source tool (disambiguate when server exists in multiple)  |
-| `--from-scope <scope>` | Source scope (disambiguate when server exists in multiple) |
-| `-f, --force`          | Overwrite if server already exists at destination          |
+| Flag                   | Description                                                              |
+| ---------------------- | ------------------------------------------------------------------------ |
+| `-t, --tool <tool>`    | Target tool: `claude`, `opencode`, `cline`, `vscode`, `hermes`, or `all` |
+| `-s, --scope <scope>`  | Target scope: `user` or `project` (`hermes` supports `user` only)        |
+| `--from-tool <tool>`   | Source tool (disambiguate when server exists in multiple)                |
+| `--from-scope <scope>` | Source scope (disambiguate when server exists in multiple)               |
+| `-f, --force`          | Overwrite if server already exists at destination                        |
 
 ### Move a server
 
@@ -129,13 +131,13 @@ mcps mv myserver --tool all --scope user --force
 
 Options:
 
-| Flag                   | Description                                                |
-| ---------------------- | ---------------------------------------------------------- |
-| `-t, --tool <tool>`    | Target tool: `claude`, `opencode`, `cline`, `vscode`, or `all` |
-| `-s, --scope <scope>`  | Target scope: `user` or `project`                          |
-| `--from-tool <tool>`   | Source tool (disambiguate when server exists in multiple)  |
-| `--from-scope <scope>` | Source scope (disambiguate when server exists in multiple) |
-| `-f, --force`          | Overwrite if server already exists at destination          |
+| Flag                   | Description                                                              |
+| ---------------------- | ------------------------------------------------------------------------ |
+| `-t, --tool <tool>`    | Target tool: `claude`, `opencode`, `cline`, `vscode`, `hermes`, or `all` |
+| `-s, --scope <scope>`  | Target scope: `user` or `project` (`hermes` supports `user` only)        |
+| `--from-tool <tool>`   | Source tool (disambiguate when server exists in multiple)                |
+| `--from-scope <scope>` | Source scope (disambiguate when server exists in multiple)               |
+| `-f, --force`          | Overwrite if server already exists at destination                        |
 
 ### Compare a server
 
@@ -144,7 +146,7 @@ mcps compare brave-search             # show where it is already configured
 mcps compare                          # interactive selection in a TTY
 ```
 
-`compare` checks the supported locations for one MCP server across Claude Code, OpenCode, Cline, and VS Code, then shows:
+`compare` checks the supported locations for one MCP server across Claude Code, OpenCode, Cline, VS Code, and Hermes Agent, then shows:
 
 - where the server is already configured
 - which supported tool/scope locations are still missing
@@ -161,12 +163,13 @@ mcps rm myserver --tool all --scope user -y
 
 ## Config files managed
 
-| Tool        | User scope                                                                                                                     | Project scope                |
-| ----------- | ------------------------------------------------------------------------------------------------------------------------------ | ---------------------------- |
-| Claude Code | `~/.claude.json` → `mcpServers`                                                                                                | `./.mcp.json` → `mcpServers` |
-| OpenCode    | `~/.config/opencode/opencode.json` → `mcp`                                                                                     | `./opencode.json` → `mcp`    |
-| Cline       | `~/Library/Application Support/Code/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json` → `mcpServers` | N/A (user-scope only)        |
-| VS Code     | `~/Library/Application Support/Code/User/mcp.json` on macOS, `~/.config/Code/User/mcp.json` on Linux, `%APPDATA%/Code/User/mcp.json` on Windows → `servers` | `./.vscode/mcp.json` → `servers` |
+| Tool         | User scope                                                                                                                                                  | Project scope                    |
+| ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------- |
+| Claude Code  | `~/.claude.json` → `mcpServers`                                                                                                                             | `./.mcp.json` → `mcpServers`     |
+| OpenCode     | `~/.config/opencode/opencode.json` → `mcp`                                                                                                                  | `./opencode.json` → `mcp`        |
+| Cline        | `~/Library/Application Support/Code/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json` → `mcpServers`                              | N/A (user-scope only)            |
+| VS Code      | `~/Library/Application Support/Code/User/mcp.json` on macOS, `~/.config/Code/User/mcp.json` on Linux, `%APPDATA%/Code/User/mcp.json` on Windows → `servers` | `./.vscode/mcp.json` → `servers` |
+| Hermes Agent | `~/.hermes/config.yaml` on macOS/Linux, `%USERPROFILE%\.hermes\config.yaml` on Windows → `mcp_servers`                                                      | N/A (user-scope only)            |
 
 Config files are never fully replaced — `mcps` reads, modifies only the relevant section, and writes back atomically, preserving all other fields.
 
@@ -211,7 +214,8 @@ src/
     ├── claude-code.ts    # ↔ Claude Code format (command+args split, stdio|http|sse)
     ├── opencode.ts       # ↔ OpenCode format (command as array, local|remote, enabled)
     ├── cline.ts          # ↔ Cline format (command+args split, streamableHttp|sse, disabled)
-    └── vscode.ts         # ↔ VS Code format (command+args split, http|sse, no disabled state)
+    ├── vscode.ts         # ↔ VS Code format (command+args split, http|sse, no disabled state)
+    └── hermes.ts         # ↔ Hermes Agent format (YAML, mcp_servers, enabled)
 ```
 
 ## License
