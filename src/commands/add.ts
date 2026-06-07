@@ -5,12 +5,12 @@ import { findBundledPreset } from "../catalog/presets.js";
 import { readServers } from "../config/reader.js";
 import { writeServer } from "../config/writer.js";
 import type { McpServer, Scope, Tool, Transport } from "../types.js";
-import { ALL_TOOLS, supportsScope } from "../tools.js";
+import { ALL_TOOLS, isTool, supportsScope, unsupportedScopeMessage } from "../tools.js";
 
 export const addCommand = new Command("add")
   .description("Add an MCP server to one or more tools")
   .argument("<name>", "Server name")
-  .option("-t, --tool <tool>", "Tool: claude | opencode | cline | vscode | all")
+  .option("-t, --tool <tool>", "Tool: claude | opencode | cline | vscode | hermes | all")
   .option("-s, --scope <scope>", "Scope: user | project")
   .option("--transport <type>", "Transport: stdio | http")
   .option(
@@ -54,19 +54,13 @@ Examples:
 
       if (opts.tool === "both") {
         clack.log.error(
-          `"both" is not supported. Use "all" for all tools, or specify claude, opencode, cline, or vscode.`,
-        );
-        return;
-      }
-      if (
-        tool !== "claude" &&
-        tool !== "opencode" &&
-        tool !== "cline" &&
-        tool !== "vscode" &&
-        tool !== "all"
-      ) {
+            `"both" is not supported. Use "all" for all tools, or specify claude, opencode, cline, vscode, or hermes.`,
+          );
+          return;
+        }
+      if (tool !== "all" && !isTool(tool)) {
         clack.log.error(
-          `Invalid tool "${opts.tool}". Use claude, opencode, cline, vscode, or all.`,
+          `Invalid tool "${opts.tool}". Use claude, opencode, cline, vscode, hermes, or all.`,
         );
         return;
       }
@@ -161,9 +155,9 @@ Examples:
 
     if (!server) return;
 
-    for (const target of tools) {
-      if (!supportsScope(target, scope)) {
-        clack.log.warn("Cline only supports user scope. Skipping.");
+      for (const target of tools) {
+        if (!supportsScope(target, scope)) {
+        clack.log.warn(`${unsupportedScopeMessage(target)} Skipping.`);
         continue;
       }
       const existing = readServers(target, scope).find(
@@ -381,6 +375,7 @@ async function promptForTools(): Promise<Tool[] | symbol> {
       { value: "opencode", label: "OpenCode" },
       { value: "cline", label: "Cline" },
       { value: "vscode", label: "VS Code" },
+      { value: "hermes", label: "Hermes" },
     ],
   }) as Promise<Tool[] | symbol>;
 }

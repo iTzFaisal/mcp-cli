@@ -10,6 +10,8 @@ describe("writeServer and removeServer", () => {
   const claudeFile = path.join(tmpDir, "claude.json");
   const opencodeDir = path.join(tmpDir, "config", "opencode");
   const opencodeFile = path.join(opencodeDir, "opencode.json");
+  const hermesDir = path.join(tmpDir, ".hermes");
+  const hermesFile = path.join(hermesDir, "config.yaml");
   const clineDir = path.join(tmpDir, "config", "cline");
   const clineFile = path.join(clineDir, "cline_mcp_settings.json");
   const vscodeDir = path.join(tmpDir, ".vscode");
@@ -35,6 +37,7 @@ describe("writeServer and removeServer", () => {
     fs.rmSync(tmpDir, { recursive: true, force: true });
     fs.mkdirSync(tmpDir, { recursive: true });
     fs.mkdirSync(opencodeDir, { recursive: true });
+    fs.mkdirSync(hermesDir, { recursive: true });
     fs.mkdirSync(clineDir, { recursive: true });
     fs.mkdirSync(vscodeDir, { recursive: true });
 
@@ -60,6 +63,10 @@ describe("writeServer and removeServer", () => {
 
   function mockClinePath() {
     configPathSpy.mockReturnValue(clineFile);
+  }
+
+  function mockHermesPath() {
+    configPathSpy.mockReturnValue(hermesFile);
   }
 
   function mockVsCodePath() {
@@ -102,6 +109,17 @@ describe("writeServer and removeServer", () => {
       expect(fs.existsSync(newFile)).toBe(true);
       const data = JSON.parse(fs.readFileSync(newFile, "utf-8"));
       expect(data.mcpServers["test-server"]).toBeDefined();
+    });
+
+    it("creates Hermes config if it does not exist", () => {
+      mockHermesPath();
+
+      writeServer(httpServer, "hermes", "user");
+
+      const content = fs.readFileSync(hermesFile, "utf-8");
+      expect(content).toContain("mcp_servers:");
+      expect(content).toContain("http-server:");
+      expect(content).toContain("url: https://mcp.example.com");
     });
 
     it("preserves existing fields in config file", () => {
@@ -205,6 +223,27 @@ describe("writeServer and removeServer", () => {
       });
     });
 
+    it("preserves unrelated Hermes fields when writing", () => {
+      fs.writeFileSync(
+        hermesFile,
+        [
+          "theme: dark",
+          "mcp_servers:",
+          "  existing:",
+          "    command: old",
+        ].join("\n") + "\n"
+      );
+      mockHermesPath();
+
+      writeServer(httpServer, "hermes", "user");
+
+      const content = fs.readFileSync(hermesFile, "utf-8");
+      expect(content).toContain("theme: dark");
+      expect(content).toContain("mcp_servers:");
+      expect(content).toContain("http-server:");
+      expect(content).toContain("headers:");
+    });
+
     it("preserves unrelated VS Code fields when writing", () => {
       fs.writeFileSync(
         vscodeFile,
@@ -305,6 +344,29 @@ describe("writeServer and removeServer", () => {
       const data = JSON.parse(fs.readFileSync(vscodeFile, "utf-8"));
       expect(data.inputs).toEqual([{ id: "token" }]);
       expect(data.servers["test-server"]).toBeUndefined();
+    });
+
+    it("removes server from Hermes config and preserves unrelated fields", () => {
+      fs.writeFileSync(
+        hermesFile,
+        [
+          "theme: dark",
+          "mcp_servers:",
+          "  test-server:",
+          "    command: npx",
+          "  other-server:",
+          "    url: https://example.com/mcp",
+        ].join("\n") + "\n"
+      );
+      mockHermesPath();
+
+      const result = removeServer("test-server", "hermes", "user");
+
+      expect(result).toBe(true);
+      const content = fs.readFileSync(hermesFile, "utf-8");
+      expect(content).toContain("theme: dark");
+      expect(content).not.toContain("test-server:");
+      expect(content).toContain("other-server:");
     });
   });
 });

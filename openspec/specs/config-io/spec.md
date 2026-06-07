@@ -75,6 +75,17 @@ The system SHALL read the `mcp` key from `opencode.json` in the project root.
 - **WHEN** `opencode.json` exists in the detected project root
 - **THEN** system parses and returns all servers from the `mcp` key
 
+### Requirement: Read Hermes user-scope config
+The system SHALL read the `mcp_servers` key from the Hermes user config path and parse each server entry.
+
+#### Scenario: Parse Hermes user config
+- **WHEN** `~/.hermes/config.yaml` exists and contains entries under `mcp_servers`
+- **THEN** system parses and returns those servers through the Hermes translator
+
+#### Scenario: No Hermes user config exists
+- **WHEN** the Hermes user config file does not exist
+- **THEN** system returns an empty server list for Hermes user scope
+
 ### Requirement: Read VS Code user-scope config
 The system SHALL read the `servers` key from the default local VS Code user MCP config path.
 
@@ -107,6 +118,19 @@ The system SHALL read the full JSON file, modify the relevant section, and write
 #### Scenario: Write to VS Code user config
 - **WHEN** adding/removing a server from the VS Code user `mcp.json`
 - **THEN** system preserves all other fields and only modifies the `servers` key
+
+#### Scenario: Write to existing Hermes config
+- **WHEN** adding or removing a server from `~/.hermes/config.yaml`
+- **THEN** system preserves unrelated top-level fields and only modifies `mcp_servers`
+
+#### Scenario: Create Hermes config if missing
+- **WHEN** writing to Hermes user scope and the config file does not exist
+- **THEN** system creates a new YAML file with the `mcp_servers` structure
+
+#### Scenario: Comments and formatting are not guaranteed to be preserved
+- **WHEN** system rewrites `~/.hermes/config.yaml`
+- **THEN** system preserves the YAML data model for unrelated fields
+- **THEN** system does not guarantee preservation of comments, quoting style, or flow-style formatting
 
 #### Scenario: Create project config if missing
 - **WHEN** writing to project scope and the config file does not exist

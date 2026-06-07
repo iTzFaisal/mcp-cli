@@ -5,14 +5,14 @@ Define how `mcps list` shows configured MCP servers across supported tools and s
 ## Requirements
 
 ### Requirement: List all MCP servers across tools
-The system SHALL display all configured MCP servers from Claude Code, OpenCode, Cline, and VS Code in a single unified view.
+The system SHALL display all configured MCP servers from Claude Code, OpenCode, Cline, VS Code, and Hermes in a single unified view.
 
 #### Scenario: List with no servers configured
 - **WHEN** user runs `mcp list` and no servers exist in any tool
 - **THEN** system displays "No MCP servers configured" message
 
-#### Scenario: List shows servers from both tools
-- **WHEN** user runs `mcp list` with servers configured in both Claude Code and OpenCode
+#### Scenario: List shows servers from multiple tools
+- **WHEN** user runs `mcp list` with servers configured in Claude Code, OpenCode, or Hermes
 - **THEN** system displays each server with its name, tool(s), scope, and transport type
 
 #### Scenario: List shows scope for each server
@@ -41,6 +41,10 @@ The system SHALL allow filtering the list to a specific tool.
 #### Scenario: Filter to VS Code only
 - **WHEN** user runs `mcps list --tool vscode`
 - **THEN** system displays only servers configured in VS Code
+
+#### Scenario: Filter to Hermes only
+- **WHEN** user runs `mcps list --tool hermes`
+- **THEN** system displays only servers configured in Hermes
 
 ### Requirement: Filter list by scope
 The system SHALL allow filtering the list to user or project scope.

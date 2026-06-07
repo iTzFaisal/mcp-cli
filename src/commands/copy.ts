@@ -4,15 +4,15 @@ import pc from "picocolors";
 import { readServers } from "../config/reader.js";
 import { writeServer } from "../config/writer.js";
 import type { LocatedServer, Scope, Tool } from "../types.js";
-import { ALL_TOOLS, supportsScope, toolLabel } from "../tools.js";
+import { ALL_TOOLS, isTool, supportsScope, toolLabel, unsupportedScopeMessage } from "../tools.js";
 
 export const copyCommand = new Command("copy")
   .alias("cp")
   .description("Copy an MCP server to another tool or scope")
   .argument("<name>", "Server name")
-  .option("-t, --tool <tool>", "Target tool: claude | opencode | cline | vscode | all")
+  .option("-t, --tool <tool>", "Target tool: claude | opencode | cline | vscode | hermes | all")
   .option("-s, --scope <scope>", "Target scope: user | project")
-  .option("--from-tool <tool>", "Source tool: claude | opencode | cline | vscode")
+  .option("--from-tool <tool>", "Source tool: claude | opencode | cline | vscode | hermes")
   .option("--from-scope <scope>", "Source scope: user | project")
   .option("-f, --force", "Overwrite if server exists at destination")
   .addHelpText(
@@ -51,18 +51,12 @@ async function runNonInteractive(
   const targetScope = opts.scope as Scope;
 
   if (opts.tool === "both") {
-    clack.log.error(`"both" is not supported. Use "all" for all tools, or specify claude, opencode, cline, or vscode.`);
+    clack.log.error(`"both" is not supported. Use "all" for all tools, or specify claude, opencode, cline, vscode, or hermes.`);
     return;
   }
-  if (
-    targetTool !== "claude" &&
-    targetTool !== "opencode" &&
-    targetTool !== "cline" &&
-    targetTool !== "vscode" &&
-    targetTool !== "all"
-  ) {
+  if (targetTool !== "all" && !isTool(targetTool)) {
     clack.log.error(
-      `Invalid tool "${opts.tool}". Use claude, opencode, cline, vscode, or all.`
+      `Invalid tool "${opts.tool}". Use claude, opencode, cline, vscode, hermes, or all.`
     );
     return;
   }
@@ -74,9 +68,9 @@ async function runNonInteractive(
   let source = matches;
 
   if (opts.fromTool) {
-    if (opts.fromTool !== "claude" && opts.fromTool !== "opencode" && opts.fromTool !== "cline" && opts.fromTool !== "vscode") {
+    if (!isTool(opts.fromTool)) {
       clack.log.error(
-        `Invalid --from-tool "${opts.fromTool}". Use claude, opencode, cline, or vscode.`
+        `Invalid --from-tool "${opts.fromTool}". Use claude, opencode, cline, vscode, or hermes.`
       );
       return;
     }
@@ -119,7 +113,7 @@ async function runNonInteractive(
 
   for (const t of targets) {
     if (!supportsScope(t, targetScope)) {
-      clack.log.warn("Cline only supports user scope. Skipping.");
+      clack.log.warn(`${unsupportedScopeMessage(t)} Skipping.`);
       continue;
     }
     if (!opts.force) {
@@ -176,6 +170,7 @@ async function runInteractive(
           { value: "opencode", label: "OpenCode" },
           { value: "cline", label: "Cline" },
           { value: "vscode", label: "VS Code" },
+          { value: "hermes", label: "Hermes" },
           { value: "all", label: "All" },
         ],
   });
@@ -199,7 +194,7 @@ async function runInteractive(
 
   for (const t of targets) {
     if (!supportsScope(t, targetScope)) {
-      clack.log.warn("Cline only supports user scope. Skipping.");
+      clack.log.warn(`${unsupportedScopeMessage(t)} Skipping.`);
       continue;
     }
     const existing = readServers(t, targetScope).find(

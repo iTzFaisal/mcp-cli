@@ -11,6 +11,8 @@ describe("copy command", () => {
   const claudeFile = path.join(tmpDir, ".claude.json");
   const opencodeDir = path.join(tmpDir, ".config", "opencode");
   const opencodeFile = path.join(opencodeDir, "opencode.json");
+  const hermesDir = path.join(tmpDir, ".hermes");
+  const hermesFile = path.join(hermesDir, "config.yaml");
   const projectDir = path.join(tmpDir, "project");
   const claudeProjectFile = path.join(projectDir, ".mcp.json");
   const opencodeProjectFile = path.join(projectDir, "opencode.json");
@@ -55,6 +57,7 @@ describe("copy command", () => {
     fs.rmSync(tmpDir, { recursive: true, force: true });
     fs.mkdirSync(tmpDir, { recursive: true });
     fs.mkdirSync(opencodeDir, { recursive: true });
+    fs.mkdirSync(hermesDir, { recursive: true });
     fs.mkdirSync(clineDir, { recursive: true });
     fs.mkdirSync(projectDir, { recursive: true });
     fs.mkdirSync(vscodeUserDir, { recursive: true });
@@ -63,6 +66,7 @@ describe("copy command", () => {
 
     fs.writeFileSync(claudeFile, JSON.stringify({ mcpServers: {} }));
     fs.writeFileSync(opencodeFile, JSON.stringify({ mcp: {} }));
+    fs.writeFileSync(hermesFile, "mcp_servers: {}\n");
     fs.writeFileSync(claudeProjectFile, JSON.stringify({ mcpServers: {} }));
     fs.writeFileSync(opencodeProjectFile, JSON.stringify({ mcp: {} }));
     fs.writeFileSync(clineFile, JSON.stringify({ mcpServers: {} }));
@@ -226,8 +230,10 @@ describe("copy command", () => {
       const opencodeData = JSON.parse(
         fs.readFileSync(opencodeFile, "utf-8")
       );
+      const hermesData = fs.readFileSync(hermesFile, "utf-8");
       expect(claudeData.mcpServers["my-server"]).toBeDefined();
       expect(opencodeData.mcp["my-server"]).toBeDefined();
+      expect(hermesData).toContain("my-server:");
     });
 
     it("copies with --from-tool and --from-scope", () => {
@@ -359,6 +365,56 @@ describe("copy command", () => {
         command: "npx",
         args: ["-y", "@microsoft/mcp-server-playwright"],
       });
+    });
+
+    it("copies from Hermes user to OpenCode user", () => {
+      fs.writeFileSync(
+        hermesFile,
+        [
+          "mcp_servers:",
+          "  brave-search:",
+          "    url: https://mcp.example.com/hermes",
+          "    headers:",
+          "      Authorization: Bearer API_KEY",
+        ].join("\n") + "\n"
+      );
+
+      runCli(
+        "copy brave-search --from-tool hermes --from-scope user --tool opencode --scope user"
+      );
+
+      const data = JSON.parse(fs.readFileSync(opencodeFile, "utf-8"));
+      expect(data.mcp["brave-search"]).toEqual({
+        type: "remote",
+        url: "https://mcp.example.com/hermes",
+        headers: { Authorization: "Bearer API_KEY" },
+        enabled: true,
+        timeout: 60000,
+      });
+    });
+
+    it("copies from Claude user to Hermes user", () => {
+      fs.writeFileSync(
+        claudeFile,
+        JSON.stringify({
+          mcpServers: {
+            docs: {
+              type: "http",
+              url: "https://example.com/mcp",
+              headers: { Authorization: "Bearer token" },
+            },
+          },
+        })
+      );
+
+      runCli(
+        "copy docs --from-tool claude --from-scope user --tool hermes --scope user"
+      );
+
+      const content = fs.readFileSync(hermesFile, "utf-8");
+      expect(content).toContain("docs:");
+      expect(content).toContain("url: https://example.com/mcp");
+      expect(content).toContain("Authorization: Bearer token");
     });
   });
 

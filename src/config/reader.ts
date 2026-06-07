@@ -1,16 +1,30 @@
 import * as fs from "fs";
+import { parse as parseYaml } from "yaml";
 import type { McpServer, Scope, Tool, LocatedServer } from "../types.js";
 import { configPath, detectProjectRoot } from "./paths.js";
 import { fromClaudeCode } from "../translators/claude-code.js";
 import { fromOpenCode } from "../translators/opencode.js";
 import { fromCline } from "../translators/cline.js";
 import { fromVsCode } from "../translators/vscode.js";
+import { fromHermes } from "../translators/hermes.js";
 import { ALL_TOOLS, supportsScope } from "../tools.js";
 
 function readJsonFile(filePath: string): Record<string, unknown> | null {
   try {
     const content = fs.readFileSync(filePath, "utf-8");
     return JSON.parse(content) as Record<string, unknown>;
+  } catch {
+    return null;
+  }
+}
+
+function readYamlFile(filePath: string): Record<string, unknown> | null {
+  try {
+    const content = fs.readFileSync(filePath, "utf-8");
+    const parsed = parseYaml(content);
+    return parsed && typeof parsed === "object"
+      ? (parsed as Record<string, unknown>)
+      : {};
   } catch {
     return null;
   }
@@ -71,6 +85,19 @@ function readVsCodeServers(scope: Scope): McpServer[] {
   );
 }
 
+function readHermesServers(): McpServer[] {
+  const filePath = configPath("hermes", "user");
+  const data = readYamlFile(filePath);
+  if (!data) return [];
+
+  const raw = data.mcp_servers as Record<string, unknown> | undefined;
+  if (!raw) return [];
+
+  return Object.entries(raw).map(([name, val]) =>
+    fromHermes(name, val as Parameters<typeof fromHermes>[1])
+  );
+}
+
 export function readServers(
   tool?: Tool,
   scope?: Scope
@@ -86,6 +113,8 @@ export function readServers(
       let servers: McpServer[];
       if (t === "cline") {
         servers = readClineServers();
+      } else if (t === "hermes") {
+        servers = readHermesServers();
       } else if (t === "claude") {
         servers = readClaudeServers(s);
       } else if (t === "vscode") {

@@ -58,6 +58,7 @@ describe("compare command helpers", () => {
       { tool: "claude", scope: "project" },
       { tool: "opencode", scope: "user" },
       { tool: "cline", scope: "user" },
+      { tool: "hermes", scope: "user" },
       { tool: "vscode", scope: "user" },
       { tool: "vscode", scope: "project" },
     ]);
@@ -138,6 +139,20 @@ describe("compare command helpers", () => {
       )
     ).toEqual([
       "mcps copy brave-search --from-tool claude --from-scope user --tool vscode --scope project",
+    ]);
+  });
+
+  it("generates Hermes copy hints", () => {
+    const source = locatedServer("brave-search", "claude", "user");
+    expect(
+      buildCopyHints(
+        "brave-search",
+        [{ tool: "hermes", scope: "user" }],
+        source,
+        true
+      )
+    ).toEqual([
+      "mcps copy brave-search --from-tool claude --from-scope user --tool hermes --scope user",
     ]);
   });
 

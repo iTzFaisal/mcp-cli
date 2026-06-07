@@ -8,8 +8,8 @@ Define how `mcps compare` reports MCP server presence across supported tools and
 The system SHALL provide a `compare` command that evaluates one MCP server name across every supported tool/scope location and reports whether that server is configured or missing in each location.
 
 #### Scenario: Server configured in some locations
-- **WHEN** user runs `mcps compare brave-search` and the server exists in Claude Code user scope and OpenCode project scope
-- **THEN** the system reports Claude Code user and OpenCode project as configured
+- **WHEN** user runs `mcps compare brave-search` and the server exists in Claude Code user scope, OpenCode project scope, and Hermes user scope
+- **THEN** the system reports Claude Code user, OpenCode project, and Hermes user as configured
 - **THEN** the system reports Claude Code project, OpenCode user, Cline user, VS Code user, and VS Code project as missing
 
 #### Scenario: Server missing everywhere
@@ -22,8 +22,8 @@ The compare command SHALL only include supported tool/scope destinations in its 
 
 #### Scenario: Unsupported destination omitted
 - **WHEN** user runs `mcps compare brave-search`
-- **THEN** the system includes Claude Code user/project, OpenCode user/project, Cline user, and VS Code user/project in the comparison
-- **THEN** the system does not report Cline project as a missing destination
+- **THEN** the system includes Claude Code user/project, OpenCode user/project, Cline user, VS Code user/project, and Hermes user in the comparison
+- **THEN** the system does not report Cline project or Hermes project as a missing destination
 
 ### Requirement: Non-interactive compare by name
 The compare command SHALL support non-interactive usage when the server name is provided as an argument.
@@ -63,6 +63,10 @@ The compare command SHALL generate a suggested `mcps copy` command for every mis
 #### Scenario: Hint for VS Code project destination
 - **WHEN** user runs `mcps compare brave-search` and the server is missing in VS Code project scope but exists in another supported location
 - **THEN** the output includes a hint command targeting `--tool vscode --scope project`
+
+#### Scenario: Hint for Hermes user destination
+- **WHEN** user runs `mcps compare brave-search` and the server is missing in Hermes user scope but exists in another supported location
+- **THEN** the output includes a hint command targeting `--tool hermes --scope user`
 
 ### Requirement: Interactive cancellation is safe
 The compare command SHALL abort without changes if the user cancels an interactive prompt.

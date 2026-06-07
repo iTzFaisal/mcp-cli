@@ -1,17 +1,31 @@
 import * as fs from "fs";
 import * as path from "path";
+import { parse as parseYaml, stringify as stringifyYaml } from "yaml";
 import type { McpServer, Scope, Tool } from "../types.js";
 import { configPath, detectProjectRoot } from "./paths.js";
 import { toClaudeCode } from "../translators/claude-code.js";
 import { toOpenCode } from "../translators/opencode.js";
 import { toCline } from "../translators/cline.js";
 import { toVsCode } from "../translators/vscode.js";
+import { toHermes } from "../translators/hermes.js";
 import { supportsScope } from "../tools.js";
 
 function readOrInit(filePath: string): Record<string, unknown> {
   try {
     const content = fs.readFileSync(filePath, "utf-8");
     return JSON.parse(content) as Record<string, unknown>;
+  } catch {
+    return {};
+  }
+}
+
+function readOrInitYaml(filePath: string): Record<string, unknown> {
+  try {
+    const content = fs.readFileSync(filePath, "utf-8");
+    const parsed = parseYaml(content);
+    return parsed && typeof parsed === "object"
+      ? (parsed as Record<string, unknown>)
+      : {};
   } catch {
     return {};
   }
@@ -32,11 +46,14 @@ export function writeServer(
   const filePath = configPath(tool, scope, projectRoot);
   ensureDir(filePath);
 
-  const data = readOrInit(filePath);
+  const data = tool === "hermes" ? readOrInitYaml(filePath) : readOrInit(filePath);
 
   if (tool === "cline") {
     if (!data.mcpServers) data.mcpServers = {};
     (data.mcpServers as Record<string, unknown>)[server.name] = toCline(server);
+  } else if (tool === "hermes") {
+    if (!data.mcp_servers) data.mcp_servers = {};
+    (data.mcp_servers as Record<string, unknown>)[server.name] = toHermes(server);
   } else if (tool === "claude") {
     if (!data.mcpServers) data.mcpServers = {};
     (data.mcpServers as Record<string, unknown>)[server.name] = toClaudeCode(server);
@@ -46,6 +63,11 @@ export function writeServer(
   } else {
     if (!data.mcp) data.mcp = {};
     (data.mcp as Record<string, unknown>)[server.name] = toOpenCode(server);
+  }
+
+  if (tool === "hermes") {
+    fs.writeFileSync(filePath, stringifyYaml(data), "utf-8");
+    return;
   }
 
   fs.writeFileSync(filePath, JSON.stringify(data, null, 2) + "\n", "utf-8");
@@ -61,11 +83,13 @@ export function removeServer(
   const projectRoot = scope === "project" ? detectProjectRoot() : undefined;
   const filePath = configPath(tool, scope, projectRoot);
 
-  const data = readOrInit(filePath);
+  const data = tool === "hermes" ? readOrInitYaml(filePath) : readOrInit(filePath);
 
   let container: Record<string, unknown> | undefined;
   if (tool === "cline" || tool === "claude") {
     container = data.mcpServers as Record<string, unknown> | undefined;
+  } else if (tool === "hermes") {
+    container = data.mcp_servers as Record<string, unknown> | undefined;
   } else if (tool === "vscode") {
     container = data.servers as Record<string, unknown> | undefined;
   } else {
@@ -75,6 +99,11 @@ export function removeServer(
   if (!container || !(name in container)) return false;
 
   delete container[name];
+
+  if (tool === "hermes") {
+    fs.writeFileSync(filePath, stringifyYaml(data), "utf-8");
+    return true;
+  }
 
   fs.writeFileSync(filePath, JSON.stringify(data, null, 2) + "\n", "utf-8");
   return true;

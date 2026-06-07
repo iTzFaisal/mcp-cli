@@ -3,7 +3,7 @@
 Define how `mcps add` creates MCP server entries through interactive and non-interactive flows across supported tools and scopes.
 ## Requirements
 ### Requirement: Interactive MCP server addition
-The system SHALL provide an interactive wizard to add an MCP server, prompting for tool selection, scope, transport type, and transport-specific configuration. Interactive tool selection SHALL allow choosing one or more of "Claude Code", "OpenCode", "Cline", and "VS Code" in a single prompt. Before prompting for transport-specific configuration, the system SHALL check a bundled MCP preset catalog for an entry matching the requested server name using case-insensitive exact-name lookup. When a preset is found, the system SHALL tell the user that a configuration was found and offer three choices: use the preset as-is, edit the discovered values first, or continue with full manual entry. If the user chooses the preset as-is, the system SHALL use the preset-derived configuration as the server definition. If the user chooses manual entry, the system SHALL continue with the existing manual prompts.
+The system SHALL provide an interactive wizard to add an MCP server, prompting for tool selection, scope, transport type, and transport-specific configuration. Interactive tool selection SHALL allow choosing one or more of "Claude Code", "OpenCode", "Cline", "VS Code", and "Hermes" in a single prompt. Before prompting for transport-specific configuration, the system SHALL check a bundled MCP preset catalog for an entry matching the requested server name using case-insensitive exact-name lookup. When a preset is found, the system SHALL tell the user that a configuration was found and offer three choices: use the preset as-is, edit the discovered values first, or continue with full manual entry. If the user chooses the preset as-is, the system SHALL use the preset-derived configuration as the server definition. If the user chooses manual entry, the system SHALL continue with the existing manual prompts.
 
 #### Scenario: Use a discovered preset for an http server
 - **WHEN** user runs `mcps add github`, selects one or more target tools and a supported scope, and the bundled catalog contains a matching preset with `type: "http"`, `url`, and optional headers
@@ -39,17 +39,21 @@ The system SHALL provide an interactive wizard to add an MCP server, prompting f
 - **WHEN** user runs `mcps add playwright`, selects "VS Code", selects "Project" scope, selects "stdio" transport, and enters command `npx -y @microsoft/mcp-server-playwright`
 - **THEN** system writes the server under the `servers` key in `.vscode/mcp.json`
 
-#### Scenario: Add a server to a mixed selection that includes Cline at project scope
-- **WHEN** user runs `mcps add foo`, selects "Claude Code" and "Cline", and selects "Project" scope
+#### Scenario: Add a server to Hermes user scope
+- **WHEN** user runs `mcps add github`, selects "Hermes", selects "User" scope, selects "http" transport, and enters URL `https://example.com/mcp`
+- **THEN** system writes the server under the `mcp_servers` key in `~/.hermes/config.yaml`
+
+#### Scenario: Add a server to a mixed selection that includes a user-only tool at project scope
+- **WHEN** user runs `mcps add foo`, selects "Claude Code", "Cline", and "Hermes", and selects "Project" scope
 - **THEN** system adds the server to Claude Code project config
-- **THEN** system warns that Cline only supports user scope and skips the Cline write
+- **THEN** system warns that Cline and Hermes only support user scope and skips those writes
 
 #### Scenario: Add a server that already exists in one selected target
 - **WHEN** user attempts to add a server interactively to multiple selected tools and the server name already exists in one target tool and scope
 - **THEN** system prompts to confirm overwrite for that existing target before proceeding
 
 ### Requirement: Non-interactive add with flags
-The system SHALL support adding servers non-interactively via command-line flags. The `--tool` flag SHALL accept `claude`, `opencode`, `cline`, `vscode`, or `all`. The system SHALL accept environment variables only for `stdio` servers and remote headers only for `http` servers. When the user provides a complete non-interactive add command, the system SHALL use the explicit flag values and SHALL NOT replace them with catalog preset values.
+The system SHALL support adding servers non-interactively via command-line flags. The `--tool` flag SHALL accept `claude`, `opencode`, `cline`, `vscode`, `hermes`, or `all`. The system SHALL accept environment variables only for `stdio` servers and remote headers only for `http` servers. When the user provides a complete non-interactive add command, the system SHALL use the explicit flag values and SHALL NOT replace them with catalog preset values.
 
 #### Scenario: Add stdio server with flags to Cline
 - **WHEN** user runs `mcps add myserver --tool cline --scope user --transport stdio --command "npx -y my-server" --env KEY=value`
@@ -57,11 +61,15 @@ The system SHALL support adding servers non-interactively via command-line flags
 
 #### Scenario: Add http server with multiple headers to all tools
 - **WHEN** user runs `mcps add notion --tool all --scope user --transport http --url "https://mcp.notion.com/mcp" --header "Authorization=Bearer API_KEY" --header "OTHER=val"`
-- **THEN** system adds the server to Claude Code, OpenCode, Cline, and VS Code without interactive prompts and writes `headers.Authorization: "Bearer API_KEY"` and `headers.OTHER: "val"` in each target tool's native format
+- **THEN** system adds the server to Claude Code, OpenCode, Cline, VS Code, and Hermes without interactive prompts and writes `headers.Authorization: "Bearer API_KEY"` and `headers.OTHER: "val"` in each target tool's native format
 
 #### Scenario: Add stdio server to VS Code with flags
 - **WHEN** user runs `mcps add playwright --tool vscode --scope project --transport stdio --command "npx -y @microsoft/mcp-server-playwright"`
 - **THEN** system writes the server to `.vscode/mcp.json` without interactive prompts
+
+#### Scenario: Add http server to Hermes with flags
+- **WHEN** user runs `mcps add docs --tool hermes --scope user --transport http --url "https://example.com/mcp"`
+- **THEN** system writes the server to `~/.hermes/config.yaml` without interactive prompts
 
 #### Scenario: Reject --tool both
 - **WHEN** user runs `mcps add foo --tool both`

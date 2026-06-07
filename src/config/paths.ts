@@ -15,6 +15,10 @@ export function opencodeUserPath(): string {
   return path.join(home(), ".config", "opencode", "opencode.json");
 }
 
+export function hermesUserPath(): string {
+  return path.join(home(), ".hermes", "config.yaml");
+}
+
 export function vscodeUserPath(): string {
   const platform = process.platform;
   if (platform === "win32") {
@@ -84,6 +88,12 @@ export function clineUserPath(): string {
 export function configPath(tool: Tool, scope: Scope, projectRoot?: string): string {
   if (tool === "cline") {
     return clineUserPath();
+  }
+  if (tool === "hermes") {
+    if (scope === "project") {
+      throw new Error("Hermes only supports user scope.");
+    }
+    return hermesUserPath();
   }
   if (tool === "claude") {
     return scope === "user" ? claudeUserPath() : claudeProjectPath(projectRoot ?? detectProjectRoot());

@@ -9,6 +9,8 @@ describe("readServers", () => {
   const claudeUserFile = path.join(tmpDir, "claude.json");
   const opencodeDir = path.join(tmpDir, "config", "opencode");
   const opencodeUserFile = path.join(opencodeDir, "opencode.json");
+  const hermesDir = path.join(tmpDir, ".hermes");
+  const hermesUserFile = path.join(hermesDir, "config.yaml");
   const projectDir = path.join(tmpDir, "project");
   const claudeProjectFile = path.join(projectDir, ".mcp.json");
   const opencodeProjectFile = path.join(projectDir, "opencode.json");
@@ -21,6 +23,7 @@ describe("readServers", () => {
 
   beforeEach(() => {
     fs.mkdirSync(opencodeDir, { recursive: true });
+    fs.mkdirSync(hermesDir, { recursive: true });
     fs.mkdirSync(projectDir, { recursive: true });
     fs.mkdirSync(vscodeUserDir, { recursive: true });
     fs.mkdirSync(vscodeProjectDir, { recursive: true });
@@ -38,6 +41,7 @@ describe("readServers", () => {
       (tool: string, scope: string) => {
         if (tool === "claude" && scope === "user") return claudeUserFile;
         if (tool === "opencode" && scope === "user") return opencodeUserFile;
+        if (tool === "hermes" && scope === "user") return hermesUserFile;
         if (tool === "vscode" && scope === "user") return vscodeUserFile;
         if (tool === "claude" && scope === "project") return claudeProjectFile;
         if (tool === "vscode" && scope === "project") return vscodeProjectFile;
@@ -68,6 +72,15 @@ describe("readServers", () => {
           },
         },
       })
+    );
+    fs.writeFileSync(
+      hermesUserFile,
+      [
+        "mcp_servers:",
+        "  hermes-server:",
+        "    url: https://mcp.example.com/hermes",
+        "    enabled: false",
+      ].join("\n") + "\n"
     );
     fs.writeFileSync(
       vscodeUserFile,
@@ -114,11 +127,12 @@ describe("readServers", () => {
     );
 
     const servers = readServers();
-    expect(servers.length).toBe(6);
+    expect(servers.length).toBe(7);
 
     const names = servers.map((s) => s.server.name);
     expect(names).toContain("test-server");
     expect(names).toContain("project-server");
+    expect(names).toContain("hermes-server");
     expect(names).toContain("vscode-user");
     expect(names).toContain("vscode-project");
   });
@@ -250,6 +264,37 @@ describe("readServers", () => {
       env: { API_KEY: "${input:token}" },
       disabled: undefined,
     });
+  });
+
+  it("reads Hermes servers from mcp_servers", () => {
+    setupMocks();
+    fs.writeFileSync(
+      hermesUserFile,
+      [
+        "theme: dark",
+        "mcp_servers:",
+        "  github:",
+        "    command: npx",
+        "    args:",
+        "      - -y",
+        "      - server",
+      ].join("\n") + "\n"
+    );
+
+    const servers = readServers("hermes", "user");
+    expect(servers).toHaveLength(1);
+    expect(servers[0].server).toEqual({
+      name: "github",
+      transport: "stdio",
+      command: ["npx", "-y", "server"],
+      env: undefined,
+      disabled: undefined,
+    });
+  });
+
+  it("returns empty for missing Hermes config", () => {
+    setupMocks();
+    expect(readServers("hermes", "user")).toEqual([]);
   });
 
   it("returns empty for missing vscode project config", () => {

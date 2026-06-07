@@ -369,6 +369,48 @@ describe("add command", () => {
     );
   });
 
+  it("adds a server to Hermes with flags", async () => {
+    mockedReadServers.mockReturnValue([]);
+
+    await runAddAction([
+      "docs",
+      "-t",
+      "hermes",
+      "-s",
+      "user",
+      "--transport",
+      "http",
+      "--url",
+      "https://example.com/mcp",
+    ]);
+
+    expect(mockedWriteServer).toHaveBeenCalledWith(
+      {
+        name: "docs",
+        transport: "http",
+        url: "https://example.com/mcp",
+      },
+      "hermes",
+      "user"
+    );
+  });
+
+  it("skips Hermes at project scope in a mixed interactive selection", async () => {
+    mockedReadServers.mockReturnValue([]);
+    mockedMultiselect.mockResolvedValueOnce(["claude", "hermes"]);
+    mockedSelect.mockResolvedValueOnce("project").mockResolvedValueOnce("http");
+    mockedText
+      .mockResolvedValueOnce("https://mcp.example.com/mcp")
+      .mockResolvedValueOnce("");
+
+    await runAddAction(["project-hermes-srv"]);
+
+    expect(mockedWriteServer).toHaveBeenCalledTimes(1);
+    expect(clack.log.warn).toHaveBeenCalledWith(
+      "Hermes only supports user scope. Skipping."
+    );
+  });
+
   it("adds a server to VS Code project scope", async () => {
     mockedReadServers.mockReturnValue([]);
 
@@ -457,6 +499,7 @@ describe("add command", () => {
       expect.objectContaining({
         options: expect.arrayContaining([
           expect.objectContaining({ value: "vscode", label: "VS Code" }),
+          expect.objectContaining({ value: "hermes", label: "Hermes" }),
         ]),
       })
     );

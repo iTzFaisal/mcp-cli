@@ -11,6 +11,8 @@ describe("CLI integration tests", () => {
   const claudeFile = path.join(tmpDir, ".claude.json");
   const opencodeDir = path.join(tmpDir, ".config", "opencode");
   const opencodeFile = path.join(opencodeDir, "opencode.json");
+  const hermesDir = path.join(tmpDir, ".hermes");
+  const hermesFile = path.join(hermesDir, "config.yaml");
   const projectDir = path.join(tmpDir, "project");
   const claudeProjectFile = path.join(projectDir, ".mcp.json");
   const opencodeProjectFile = path.join(projectDir, "opencode.json");
@@ -66,6 +68,7 @@ describe("CLI integration tests", () => {
     fs.rmSync(tmpDir, { recursive: true, force: true });
     fs.mkdirSync(tmpDir, { recursive: true });
     fs.mkdirSync(opencodeDir, { recursive: true });
+    fs.mkdirSync(hermesDir, { recursive: true });
     fs.mkdirSync(clineDir, { recursive: true });
     fs.mkdirSync(projectDir, { recursive: true });
     fs.mkdirSync(vscodeUserDir, { recursive: true });
@@ -74,6 +77,7 @@ describe("CLI integration tests", () => {
 
     fs.writeFileSync(claudeFile, JSON.stringify({ mcpServers: {} }));
     fs.writeFileSync(opencodeFile, JSON.stringify({ mcp: {} }));
+    fs.writeFileSync(hermesFile, "mcp_servers: {}\n");
     fs.writeFileSync(claudeProjectFile, JSON.stringify({ mcpServers: {} }));
     fs.writeFileSync(opencodeProjectFile, JSON.stringify({ mcp: {} }));
     fs.writeFileSync(clineFile, JSON.stringify({ mcpServers: {} }));
@@ -94,6 +98,7 @@ describe("CLI integration tests", () => {
       expect(output).toContain("rm");
       expect(output).toContain("compare");
       expect(output).toContain("VS Code");
+      expect(output).toContain("Hermes");
     });
 
     it("shows version with --version", () => {
@@ -175,6 +180,21 @@ describe("CLI integration tests", () => {
       const output = cliWithHome("list --tool vscode");
       expect(output).toContain("vscode-only");
       expect(output).toContain("vscode");
+    });
+
+    it("filters by --tool hermes", () => {
+      fs.writeFileSync(
+        hermesFile,
+        [
+          "mcp_servers:",
+          "  hermes-only:",
+          "    url: https://example.com/mcp",
+        ].join("\n") + "\n"
+      );
+
+      const output = cliWithHome("list --tool hermes");
+      expect(output).toContain("hermes-only");
+      expect(output).toContain("hermes");
     });
 
     it("filters by --tool claude", () => {
@@ -276,6 +296,10 @@ describe("CLI integration tests", () => {
         clineFile,
         JSON.stringify({ existingField: "keep-cline", mcpServers: {} })
       );
+      fs.writeFileSync(
+        hermesFile,
+        ["theme: dark", "mcp_servers: {}"].join("\n") + "\n"
+      );
 
       cliWithHome(
         'add notion -t all -s user --transport http --url "https://mcp.notion.com/mcp" --header "Authorization=Bearer API_KEY" --header "OTHER=val"'
@@ -284,6 +308,7 @@ describe("CLI integration tests", () => {
       const claudeData = JSON.parse(fs.readFileSync(claudeFile, "utf-8"));
       const opencodeData = JSON.parse(fs.readFileSync(opencodeFile, "utf-8"));
       const clineData = JSON.parse(fs.readFileSync(clineFile, "utf-8"));
+      const hermesData = fs.readFileSync(hermesFile, "utf-8");
 
       expect(claudeData.existingField).toBe("keep-claude");
       expect(claudeData.mcpServers.notion).toEqual({
@@ -318,6 +343,20 @@ describe("CLI integration tests", () => {
         disabled: false,
         timeout: 60,
       });
+
+      expect(hermesData).toContain("theme: dark");
+      expect(hermesData).toContain("notion:");
+      expect(hermesData).toContain("url: https://mcp.notion.com/mcp");
+    });
+
+    it("adds http server to Hermes user config", () => {
+      cliWithHome(
+        'add docs -t hermes -s user --transport http --url "https://example.com/mcp"'
+      );
+
+      const content = fs.readFileSync(hermesFile, "utf-8");
+      expect(content).toContain("docs:");
+      expect(content).toContain("url: https://example.com/mcp");
     });
 
     it("adds server with env vars", () => {
@@ -490,12 +529,18 @@ describe("CLI integration tests", () => {
       expect(compact(output)).toContain(compact("OpenCode (project)"));
       expect(compact(output)).toContain(compact("OpenCode (user)"));
       expect(compact(output)).toContain(compact("Cline (user)"));
+      expect(compact(output)).toContain(compact("Hermes (user)"));
       expect(compact(output)).toContain(compact("VS Code (user)"));
       expect(compact(output)).toContain(compact("VS Code (project)"));
       expect(compact(output)).not.toContain(compact("Cline (project)"));
       expect(compact(output)).toContain(
         compact(
           "mcps copy brave-search --from-tool claude --from-scope user --tool opencode --scope user"
+        )
+      );
+      expect(compact(output)).toContain(
+        compact(
+          "mcps copy brave-search --from-tool claude --from-scope user --tool hermes --scope user"
         )
       );
     });

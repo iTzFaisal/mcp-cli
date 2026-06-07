@@ -4,6 +4,7 @@ import * as os from "os";
 import * as fs from "fs";
 import {
   claudeUserPath,
+  hermesUserPath,
   opencodeUserPath,
   vscodeUserPath,
   claudeProjectPath,
@@ -26,6 +27,12 @@ describe("opencodeUserPath", () => {
     expect(result).toBe(
       path.join(os.homedir(), ".config", "opencode", "opencode.json")
     );
+  });
+});
+
+describe("hermesUserPath", () => {
+  it("returns ~/.hermes/config.yaml", () => {
+    expect(hermesUserPath()).toBe(path.join(os.homedir(), ".hermes", "config.yaml"));
   });
 });
 
@@ -96,6 +103,10 @@ describe("configPath", () => {
     expect(configPath("vscode", "user")).toBe(vscodeUserPath());
   });
 
+  it("returns hermes user path for hermes/user", () => {
+    expect(configPath("hermes", "user")).toBe(hermesUserPath());
+  });
+
   it("returns claude project path for claude/project with explicit root", () => {
     expect(configPath("claude", "project", "/my/project")).toBe(
       claudeProjectPath("/my/project")
@@ -111,6 +122,12 @@ describe("configPath", () => {
   it("returns vscode project path for vscode/project with explicit root", () => {
     expect(configPath("vscode", "project", "/my/project")).toBe(
       vscodeProjectPath("/my/project")
+    );
+  });
+
+  it("rejects hermes project scope", () => {
+    expect(() => configPath("hermes", "project", "/my/project")).toThrow(
+      "Hermes only supports user scope."
     );
   });
 });

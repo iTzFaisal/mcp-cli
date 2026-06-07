@@ -43,7 +43,7 @@ The system SHALL provide an interactive wizard when no target flags are specifie
 
 #### Scenario: Interactive wizard flow
 - **WHEN** user runs `mcps copy brave-search` with no flags and the server is found
-- **THEN** system shows detected installations, prompts for target tool (Claude Code, OpenCode, Cline, VS Code, or All), then prompts for target scope (User or Project)
+- **THEN** system shows detected installations, prompts for target tool (Claude Code, OpenCode, Cline, VS Code, Hermes, or All), then prompts for target scope (User or Project)
 
 #### Scenario: Interactive wizard with single source auto-detected
 - **WHEN** user runs `mcps copy brave-search` and only one source location exists
@@ -80,7 +80,7 @@ The system SHALL prevent accidental overwrites when the server already exists at
 - **THEN** system overwrites the existing server configuration without prompting
 
 ### Requirement: Copy to "all" tools
-The system SHALL support copying a server to Claude Code, OpenCode, Cline, and VS Code simultaneously.
+The system SHALL support copying a server to Claude Code, OpenCode, Cline, VS Code, and Hermes simultaneously.
 
 #### Scenario: Copy to all tools interactively
 - **WHEN** user selects "All" as the target tool in interactive mode
@@ -88,11 +88,26 @@ The system SHALL support copying a server to Claude Code, OpenCode, Cline, and V
 
 #### Scenario: Copy to all tools non-interactively
 - **WHEN** user runs `mcps copy brave-search --tool all --scope user`
-- **THEN** system writes to Claude Code, OpenCode, Cline, and VS Code user-scope configs without prompts
+- **THEN** system writes to Claude Code, OpenCode, Cline, VS Code, and Hermes user-scope configs without prompts
 
 #### Scenario: Copy from Cline to Claude Code
 - **WHEN** user runs `mcps copy myserver --from cline --to claude`
 - **THEN** system reads the server from Cline config and writes it to Claude Code config
+
+### Requirement: Copy Hermes servers through the universal model
+The system SHALL allow Hermes to participate as a source and destination in copy flows using the universal MCP server model.
+
+#### Scenario: Copy from Hermes user to OpenCode user
+- **WHEN** user runs `mcps copy brave-search --from-tool hermes --from-scope user --tool opencode --scope user`
+- **THEN** system reads the server from `~/.hermes/config.yaml` and writes it to `~/.config/opencode/opencode.json`
+
+#### Scenario: Copy from Claude Code user to Hermes user
+- **WHEN** user runs `mcps copy brave-search --from-tool claude --from-scope user --tool hermes --scope user`
+- **THEN** system reads the server from `~/.claude.json` and writes it to `~/.hermes/config.yaml`
+
+#### Scenario: Drop Hermes-only metadata on cross-tool copy
+- **WHEN** user copies a Hermes server containing Hermes-only fields outside the universal model
+- **THEN** system copies only shared universal fields such as transport, command, env, url, headers, and disabled state
 
 ### Requirement: Copy preserves remote authorization headers across tools
 The system SHALL preserve remote authorization headers when copying an `http` MCP server, including when Cline is the source or destination.

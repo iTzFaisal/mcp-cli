@@ -3,12 +3,12 @@ import pc from "picocolors";
 import * as clack from "@clack/prompts";
 import { readServers } from "../config/reader.js";
 import type { Tool, Scope } from "../types.js";
-import { supportsScope } from "../tools.js";
+import { isTool, supportsScope, unsupportedScopeMessage } from "../tools.js";
 
 export const listCommand = new Command("list")
   .alias("ls")
   .description("List all configured MCP servers across tools")
-  .option("-t, --tool <tool>", "Filter by tool (claude | opencode | cline | vscode)")
+  .option("-t, --tool <tool>", "Filter by tool (claude | opencode | cline | vscode | hermes)")
   .option("-s, --scope <scope>", "Filter by scope (user | project)")
   .addHelpText(
     "after",
@@ -25,8 +25,8 @@ $ mcps list
     const tool = opts.tool as Tool | undefined;
     const scope = opts.scope as Scope | undefined;
 
-    if (tool && tool !== "claude" && tool !== "opencode" && tool !== "cline" && tool !== "vscode") {
-      clack.log.error(`Invalid tool "${tool}". Use "claude", "opencode", "cline", or "vscode".`);
+    if (tool && !isTool(tool)) {
+      clack.log.error(`Invalid tool "${tool}". Use "claude", "opencode", "cline", "vscode", or "hermes".`);
       return;
     }
 
@@ -36,7 +36,7 @@ $ mcps list
     }
 
     if (tool && scope === "project" && !supportsScope(tool, scope)) {
-      clack.log.warn("Cline only supports user scope.");
+      clack.log.warn(unsupportedScopeMessage(tool));
       return;
     }
 
@@ -56,7 +56,9 @@ $ mcps list
               ? pc.magenta("opencode")
               : s.tool === "cline"
                 ? pc.blue("cline")
-                : pc.yellow("vscode");
+                : s.tool === "hermes"
+                  ? pc.green("hermes")
+                  : pc.yellow("vscode");
           const scopeLabel = s.scope === "user"
             ? pc.green("user")
             : pc.yellow("project");

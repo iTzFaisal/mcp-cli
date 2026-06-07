@@ -22,6 +22,7 @@ export const SUPPORTED_COMPARE_TARGETS: CompareTarget[] = [
   { tool: "opencode", scope: "user" },
   { tool: "opencode", scope: "project" },
   { tool: "cline", scope: "user" },
+  { tool: "hermes", scope: "user" },
   { tool: "vscode", scope: "user" },
   { tool: "vscode", scope: "project" },
 ];
